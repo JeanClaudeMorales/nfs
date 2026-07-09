@@ -26,31 +26,34 @@ function useGlowBackdrop(canvasRef, rootRef) {
     const ro = new ResizeObserver(resize);
     ro.observe(root);
 
+    // Light, airy palette so the glass reads like the navbar (light frosted).
     const orbs = [
-      { c: '#ff8a3d', x: 0.22, y: 0.35, r: 0.5, sx: 0.00007, sy: 0.00005 },
-      { c: '#5b8cff', x: 0.7, y: 0.6, r: 0.55, sx: -0.00006, sy: 0.00008 },
-      { c: '#b98cff', x: 0.5, y: 0.2, r: 0.4, sx: 0.00005, sy: -0.00004 },
+      { c: '#ffd9b3', x: 0.24, y: 0.4, r: 0.55, sx: 0.00007, sy: 0.00005 },
+      { c: '#cfe0ff', x: 0.72, y: 0.62, r: 0.6, sx: -0.00006, sy: 0.00008 },
+      { c: '#ffffff', x: 0.5, y: 0.18, r: 0.45, sx: 0.00005, sy: -0.00004 },
     ];
 
     const draw = () => {
       t += 16;
       const w = canvas.width, h = canvas.height;
-      ctx.fillStyle = '#0b0b0d';
+      // soft light base
+      const base = ctx.createLinearGradient(0, 0, w, h);
+      base.addColorStop(0, '#eef0f4');
+      base.addColorStop(1, '#e6e8ee');
+      ctx.fillStyle = base;
       ctx.fillRect(0, 0, w, h);
-      ctx.globalCompositeOperation = 'lighter';
       for (const o of orbs) {
         const cx = (o.x + Math.sin(t * o.sx) * 0.12) * w;
         const cy = (o.y + Math.cos(t * o.sy) * 0.15) * h;
         const rad = o.r * Math.min(w, h);
         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-        g.addColorStop(0, o.c + '66');
+        g.addColorStop(0, o.c + 'cc');
         g.addColorStop(1, o.c + '00');
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(cx, cy, rad, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.globalCompositeOperation = 'source-over';
       raf = requestAnimationFrame(draw);
     };
     draw();
@@ -58,8 +61,30 @@ function useGlowBackdrop(canvasRef, rootRef) {
   }, [canvasRef, rootRef]);
 }
 
+function UsFlag() {
+  const sh = 16 / 13; // stripe height
+  return (
+    <svg className="us-flag" viewBox="0 0 24 16" width="24" height="16" aria-label="United States" role="img">
+      <clipPath id="ff"><rect width="24" height="16" rx="2" /></clipPath>
+      <g clipPath="url(#ff)">
+        <rect width="24" height="16" fill="#fff" />
+        {Array.from({ length: 7 }).map((_, i) => (
+          <rect key={i} x="0" y={Math.round(i * 2 * sh * 100) / 100} width="24" height={Math.round(sh * 100) / 100} fill="#b22234" />
+        ))}
+        <rect width="10" height={Math.round(sh * 7 * 100) / 100} fill="#3c3b6e" />
+        {Array.from({ length: 4 }).map((_, rIdx) =>
+          Array.from({ length: 5 }).map((_, cIdx) => (
+            <circle key={`${rIdx}-${cIdx}`} cx={1.4 + cIdx * 1.9} cy={1.3 + rIdx * 1.9} r="0.42" fill="#fff" />
+          ))
+        )}
+      </g>
+    </svg>
+  );
+}
+
 export default function LiquidFooter() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const L = (en, es) => (lang === 'es' ? es : en);
   const rootRef = useRef(null);
   const glassRef = useRef(null);
   const bgRef = useRef(null);
@@ -112,12 +137,12 @@ export default function LiquidFooter() {
               <span>Next Frontier Systems</span>
             </div>
             <p className="footer-tagline">{t('footer.tagline')}</p>
-            <p className="footer-loc">{t('footer.location')}</p>
+            <p className="footer-loc"><UsFlag /> {L('United States of America', 'Estados Unidos de América')}</p>
           </div>
 
           <div className="footer-cols">
-            {col(t('footer.company'), ['About', 'Vision', 'Laboratories', 'Careers', 'Contact'])}
-            {col(t('footer.divisions'), ['Artificial Intelligence', 'Telecommunications', 'Simulation', 'Cloud', 'Data Intelligence'])}
+            {col(t('footer.company'), [L('About', 'Nosotros'), L('Vision', 'Visión'), L('Laboratories', 'Laboratorios'), L('Careers', 'Carreras'), L('Contact', 'Contacto')])}
+            {col(t('footer.divisions'), [L('Artificial Intelligence', 'Inteligencia Artificial'), L('Telecommunications', 'Telecomunicaciones'), L('Simulation', 'Simulación'), 'Cloud', L('Data Intelligence', 'Inteligencia de Datos')])}
             {col(t('footer.connect'), ['LinkedIn', 'X / Twitter', 'GitHub', 'Email'])}
           </div>
 

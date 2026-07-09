@@ -17,6 +17,16 @@ const NAV = [
   ['nav.portfolio', 'portfolio'],
 ];
 
+// Mixed serif/sans heading with a weight shift.
+function MixedTitle({ a, b, className = 'section-title' }) {
+  return (
+    <h2 className={className}>
+      <span className="t-sans">{a} </span>
+      <span className="t-serif">{b}</span>
+    </h2>
+  );
+}
+
 function Nav() {
   const { t, lang, toggle } = useI18n();
   const [scrolled, setScrolled] = useState(false);
@@ -26,11 +36,7 @@ function Nav() {
     window.addEventListener('scroll', on, { passive: true });
     return () => window.removeEventListener('scroll', on);
   }, []);
-
-  const go = (id) => (e) => {
-    e.preventDefault();
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  const go = (id) => (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
   return (
     <nav className={`nav-glass ${scrolled ? 'is-scrolled' : ''}`}>
@@ -39,9 +45,7 @@ function Nav() {
         Next Frontier
       </a>
       <div className="nav-links">
-        {NAV.map(([key, id]) => (
-          <a key={id} href={`#${id}`} onClick={go(id)}>{t(key)}</a>
-        ))}
+        {NAV.map(([key, id]) => <a key={id} href={`#${id}`} onClick={go(id)}>{t(key)}</a>)}
       </div>
       <div className="nav-right">
         <a href="#contact" onClick={go('contact')} className="btn-outline nav-cta">{t('nav.contact')}</a>
@@ -87,7 +91,6 @@ export default function Home() {
   const { t, lang } = useI18n();
   const portfolioRef = useRef(null);
 
-  // Drive the 3D orbit + atmosphere dive from native scroll (imperative).
   useEffect(() => {
     let raf = 0;
     const update = () => {
@@ -95,8 +98,7 @@ export default function Home() {
       const vh = window.innerHeight;
       const max = document.documentElement.scrollHeight - vh;
       const overall = max > 0 ? window.scrollY / max : 0;
-      sceneState.target = Math.min(1, overall * 1.35);
-
+      sceneState.target = Math.min(1, overall * 1.3);
       const r = portfolioRef.current?.getBoundingClientRect();
       if (r) {
         const enter = Math.min(1, Math.max(0, (vh - r.top) / vh));
@@ -108,15 +110,8 @@ export default function Home() {
     update();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      cancelAnimationFrame(raf);
-    };
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(raf); };
   }, []);
-
-  const heroTitle = t('hero.title').split('\n');
-  const introTitle = t('intro.title').split('\n');
 
   return (
     <>
@@ -128,25 +123,25 @@ export default function Home() {
         <section className="hero">
           <Reveal as="p" className="eyebrow">{t('hero.eyebrow')}</Reveal>
           <Reveal as="h1" className="hero-title" delay={0.05}>
-            {heroTitle.map((l, i) => <span key={i} className="block">{l}</span>)}
+            <span className="t-sans">{t('hero.titleA')} </span>
+            <span className="t-serif">{t('hero.titleB')}</span>
           </Reveal>
           <Reveal className="hero-sub" delay={0.15}>{t('hero.sub')}</Reveal>
           <Reveal className="hero-actions" delay={0.25}>
             <a href="#contact" className="btn-primary">{t('hero.cta')} <span className="arr">↗</span></a>
             <a href="#divisions" className="btn-outline">{t('hero.secondary')}</a>
           </Reveal>
+          <div className="scroll-hint"><span /></div>
         </section>
 
-        {/* content sheet — opaque light backdrop for readable sections */}
         <div className="sheet">
           {/* INTRO */}
           <section className="section intro">
+            <Parallax speed={70} className="deco deco-intro"><Icon name="rings" /></Parallax>
             <div className="intro-grid">
               <div>
                 <Reveal as="p" className="eyebrow">{t('intro.eyebrow')}</Reveal>
-                <Reveal as="h2" className="section-title" delay={0.05}>
-                  {introTitle.map((l, i) => <span key={i} className="block">{l}</span>)}
-                </Reveal>
+                <Reveal delay={0.05}><MixedTitle a={t('intro.titleA')} b={t('intro.titleB')} /></Reveal>
               </div>
               <div className="intro-body">
                 <Reveal className="body-text" delay={0.1}>{t('intro.body')}</Reveal>
@@ -157,17 +152,15 @@ export default function Home() {
 
           {/* DIVISIONS */}
           <section id="divisions" className="section">
+            <span className="section-index">01</span>
             <div className="section-head">
               <div>
                 <Reveal as="p" className="eyebrow">{t('divisions.eyebrow')}</Reveal>
-                <Reveal as="h2" className="section-title" delay={0.05}>
-                  {t('divisions.title').split('\n').map((l, i) => <span key={i} className="block">{l}</span>)}
-                </Reveal>
+                <Reveal delay={0.05}><MixedTitle a={t('divisions.titleA')} b={t('divisions.titleB')} /></Reveal>
               </div>
               <Reveal className="section-head-desc body-text" delay={0.1}>{t('divisions.desc')}</Reveal>
             </div>
-
-            <RevealGroup className="card-grid" stagger={0.06}>
+            <RevealGroup className="card-grid" stagger={0.05}>
               {divisions.map((div) => {
                 const d = div[lang];
                 return (
@@ -187,35 +180,33 @@ export default function Home() {
 
           {/* LABS */}
           <section id="labs" className="section">
+            <span className="section-index">02</span>
+            <Parallax speed={90} className="deco deco-labs"><Icon name="burst" /></Parallax>
             <div className="section-head">
               <div>
                 <Reveal as="p" className="eyebrow">{t('labs.eyebrow')}</Reveal>
-                <Reveal as="h2" className="section-title" delay={0.05}>
-                  {t('labs.title').split('\n').map((l, i) => <span key={i} className="block">{l}</span>)}
-                </Reveal>
+                <Reveal delay={0.05}><MixedTitle a={t('labs.titleA')} b={t('labs.titleB')} /></Reveal>
               </div>
               <Reveal className="section-head-desc body-text" delay={0.1}>{t('labs.desc')}</Reveal>
             </div>
-            <RevealGroup className="accordion-wrap" stagger={0.05}>
+            <RevealGroup className="accordion-wrap" stagger={0.04}>
               <Accordion items={labs} lang={lang} />
             </RevealGroup>
           </section>
 
           {/* INDUSTRIES */}
           <section id="industries" className="section">
+            <span className="section-index">03</span>
             <div className="section-head">
               <div>
                 <Reveal as="p" className="eyebrow">{t('industries.eyebrow')}</Reveal>
-                <Reveal as="h2" className="section-title" delay={0.05}>
-                  {t('industries.title').split('\n').map((l, i) => <span key={i} className="block">{l}</span>)}
-                </Reveal>
+                <Reveal delay={0.05}><MixedTitle a={t('industries.titleA')} b={t('industries.titleB')} /></Reveal>
               </div>
             </div>
-            <RevealGroup className="industry-grid" stagger={0.03}>
+            <RevealGroup className="industry-grid" stagger={0.025}>
               {industries[lang].map((ind) => (
-                <RevealItem key={ind} className="industry-item" y={20}>
-                  <span className="industry-dot" />
-                  {ind}
+                <RevealItem key={ind} className="industry-item" y={18}>
+                  <span className="industry-dot" />{ind}
                 </RevealItem>
               ))}
             </RevealGroup>
@@ -223,18 +214,17 @@ export default function Home() {
 
           {/* VISION & MISSION */}
           <section id="vision" className="section vision">
-            <Parallax speed={40}>
-              <Reveal as="p" className="eyebrow center">{t('vision.eyebrow')}</Reveal>
-            </Parallax>
+            <Parallax speed={60} className="deco deco-vision"><Icon name="saturn" /></Parallax>
+            <Reveal as="p" className="eyebrow center">{t('vision.eyebrow')}</Reveal>
             <div className="vision-grid">
               <Reveal className="vision-card">
                 <span className="vision-mark"><Icon name="burst" /></span>
-                <h3 className="vision-title">{t('vision.visionTitle')}</h3>
+                <h3 className="vision-title"><span className="t-serif">{t('vision.visionTitle')}</span></h3>
                 <p className="body-text">{t('vision.vision')}</p>
               </Reveal>
               <Reveal className="vision-card" delay={0.12}>
                 <span className="vision-mark"><Icon name="orbit" /></span>
-                <h3 className="vision-title">{t('vision.missionTitle')}</h3>
+                <h3 className="vision-title"><span className="t-serif">{t('vision.missionTitle')}</span></h3>
                 <p className="body-text">{t('vision.mission')}</p>
               </Reveal>
             </div>
@@ -245,14 +235,19 @@ export default function Home() {
         <section id="portfolio" ref={portfolioRef} className="portfolio">
           <div className="portfolio-head">
             <Reveal as="p" className="eyebrow center">{t('portfolio.eyebrow')}</Reveal>
-            <Reveal as="h2" className="portfolio-title" delay={0.05}>{t('portfolio.title')}</Reveal>
+            <Reveal delay={0.05}>
+              <h2 className="portfolio-title">
+                <span className="t-sans">{t('portfolio.titleA')} </span>
+                <span className="t-serif">{t('portfolio.titleB')}</span>
+              </h2>
+            </Reveal>
             <Reveal className="body-text center portfolio-desc" delay={0.1}>{t('portfolio.desc')}</Reveal>
           </div>
-          <RevealGroup className="portfolio-grid" stagger={0.08}>
+          <RevealGroup className="portfolio-grid" stagger={0.07}>
             {portfolio.map((p) => {
               const d = p[lang];
               return (
-                <RevealItem key={d.title} className="project" y={50}>
+                <RevealItem key={d.title} className="project" y={46}>
                   <div className="project-top">
                     <span className="project-icon"><Icon name={p.icon} /></span>
                     <span className="project-year">{p.year}</span>
@@ -261,7 +256,7 @@ export default function Home() {
                     <span className="project-field">{d.field}</span>
                     <h3 className="project-title">{d.title}</h3>
                     <p className="project-desc">{d.desc}</p>
-                    <a href="#" className="card-link light">{t('portfolio.view')} <span>→</span></a>
+                    <a href="#" className="card-link">{t('portfolio.view')} <span>→</span></a>
                   </div>
                 </RevealItem>
               );

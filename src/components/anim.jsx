@@ -5,16 +5,17 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 const EASE = [0.16, 1, 0.3, 1];
 
-// Reveal on enter: fade + rise + de-blur. `as` lets it be any element.
-export function Reveal({ children, className = '', delay = 0, y = 34, once = true, as = 'div' }) {
+// Reveal on enter: fade + rise. (No blur filter — it's the main scroll-jank
+// culprit; transform+opacity stay on the compositor.)
+export function Reveal({ children, className = '', delay = 0, y = 30, once = true, as = 'div' }) {
   const M = motion[as] || motion.div;
   return (
     <M
       className={className}
-      initial={{ opacity: 0, y, filter: 'blur(8px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once, amount: 0.35 }}
-      transition={{ duration: 0.9, ease: EASE, delay }}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once, amount: 0.3 }}
+      transition={{ duration: 0.8, ease: EASE, delay }}
     >
       {children}
     </M>
@@ -36,14 +37,14 @@ export function RevealGroup({ children, className = '', stagger = 0.08, once = t
   );
 }
 
-export function RevealItem({ children, className = '', y = 40, as = 'div' }) {
+export function RevealItem({ children, className = '', y = 36, as = 'div' }) {
   const M = motion[as] || motion.div;
   return (
     <M
       className={className}
       variants={{
-        hidden: { opacity: 0, y, filter: 'blur(8px)' },
-        show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.85, ease: EASE } },
+        hidden: { opacity: 0, y },
+        show: { opacity: 1, y: 0, transition: { duration: 0.75, ease: EASE } },
       }}
     >
       {children}

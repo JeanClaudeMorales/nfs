@@ -13,28 +13,33 @@ const STRINGS = {
     'nav.contact': 'Contact',
 
     'hero.eyebrow': 'Next Frontier Systems',
-    'hero.title': 'Engineering the next\ngeneration of intelligent systems',
+    'hero.titleA': 'Engineering the next generation of',
+    'hero.titleB': 'intelligent systems',
     'hero.sub': 'A U.S. deep-technology company building the platforms, infrastructure, and AI that will define the next frontier.',
     'hero.cta': 'Get in touch',
     'hero.secondary': 'Explore divisions',
 
     'intro.eyebrow': 'What we are',
-    'intro.title': 'Not another software company.\nA deep-tech company.',
+    'intro.titleA': 'Not another software company.',
+    'intro.titleB': 'A deep-tech company.',
     'intro.body': 'Most technology companies specialize in a single domain — they build software, offer cloud services, or train AI models. Next Frontier Systems brings all of those capabilities under one roof, combining scientific research, software engineering, artificial intelligence, advanced simulation, and enterprise platforms to create technology with real impact.',
     'intro.body2': 'Our goal is not to build applications. Our goal is to engineer the technologies that will define the next frontier.',
 
     'divisions.eyebrow': 'Core Divisions',
-    'divisions.title': 'How we engineer\nthe next frontier',
+    'divisions.titleA': 'How we engineer',
+    'divisions.titleB': 'the next frontier',
     'divisions.desc': 'We integrate research, artificial intelligence, large-scale simulation and software engineering into solutions for the world\'s most complex environments.',
     'common.readmore': 'Read more',
 
     'labs.eyebrow': 'Research Laboratories',
-    'labs.title': 'We don\'t just build software.\nWe research the future.',
+    'labs.titleA': 'We don\'t just build software.',
+    'labs.titleB': 'We research the future.',
     'labs.desc': 'Our laboratories develop next-generation technologies through high-precision simulation, artificial intelligence and scientific computing.',
     'labs.research': 'Research areas',
 
     'industries.eyebrow': 'Industries We Serve',
-    'industries.title': 'Built for the sectors\nthat move the world',
+    'industries.titleA': 'Built for the sectors',
+    'industries.titleB': 'that move the world',
 
     'vision.eyebrow': 'Vision & Mission',
     'vision.visionTitle': 'Our Vision',
@@ -43,7 +48,8 @@ const STRINGS = {
     'vision.mission': 'To engineer advanced technologies that combine artificial intelligence, scientific research, large-scale simulation, and software engineering into solutions that solve humanity\'s most complex challenges.',
 
     'portfolio.eyebrow': 'Selected Work',
-    'portfolio.title': 'Entering the atmosphere',
+    'portfolio.titleA': 'Entering the',
+    'portfolio.titleB': 'atmosphere',
     'portfolio.desc': 'A selection of platforms and systems engineered across our divisions.',
     'portfolio.view': 'View project',
 
@@ -69,28 +75,33 @@ const STRINGS = {
     'nav.contact': 'Contacto',
 
     'hero.eyebrow': 'Next Frontier Systems',
-    'hero.title': 'Ingeniería de la próxima\ngeneración de sistemas inteligentes',
+    'hero.titleA': 'Ingeniería de la próxima generación de',
+    'hero.titleB': 'sistemas inteligentes',
     'hero.sub': 'Una empresa estadounidense de tecnología profunda que construye las plataformas, la infraestructura y la IA que definirán la próxima frontera.',
     'hero.cta': 'Contáctanos',
     'hero.secondary': 'Ver divisiones',
 
     'intro.eyebrow': 'Quiénes somos',
-    'intro.title': 'No es otra empresa de software.\nEs una empresa Deep Tech.',
+    'intro.titleA': 'No es otra empresa de software.',
+    'intro.titleB': 'Es una empresa Deep Tech.',
     'intro.body': 'La mayoría de las empresas tecnológicas se especializan en un solo dominio: desarrollan software, ofrecen servicios en la nube o crean modelos de IA. Next Frontier Systems integra todas esas capacidades bajo un mismo techo, combinando investigación científica, ingeniería de software, inteligencia artificial, simulación avanzada y plataformas empresariales para crear tecnología con impacto real.',
     'intro.body2': 'Nuestro objetivo no es desarrollar aplicaciones. Nuestro objetivo es construir las tecnologías que definirán la próxima frontera.',
 
     'divisions.eyebrow': 'Divisiones Principales',
-    'divisions.title': 'Cómo diseñamos\nla próxima frontera',
+    'divisions.titleA': 'Cómo diseñamos',
+    'divisions.titleB': 'la próxima frontera',
     'divisions.desc': 'Integramos investigación, inteligencia artificial, simulación a gran escala e ingeniería de software en soluciones para los entornos más complejos del mundo.',
     'common.readmore': 'Leer más',
 
     'labs.eyebrow': 'Laboratorios de Investigación',
-    'labs.title': 'No solo desarrollamos software.\nInvestigamos el futuro.',
+    'labs.titleA': 'No solo desarrollamos software.',
+    'labs.titleB': 'Investigamos el futuro.',
     'labs.desc': 'Nuestros laboratorios desarrollan tecnologías de próxima generación mediante simulación de alta precisión, inteligencia artificial y computación científica.',
     'labs.research': 'Áreas de investigación',
 
     'industries.eyebrow': 'Industrias que Servimos',
-    'industries.title': 'Construido para los sectores\nque mueven el mundo',
+    'industries.titleA': 'Construido para los sectores',
+    'industries.titleB': 'que mueven el mundo',
 
     'vision.eyebrow': 'Visión y Misión',
     'vision.visionTitle': 'Nuestra Visión',
@@ -99,7 +110,8 @@ const STRINGS = {
     'vision.mission': 'Diseñar tecnologías avanzadas que combinen inteligencia artificial, investigación científica, simulación a gran escala e ingeniería de software en soluciones que resuelvan los desafíos más complejos de la humanidad.',
 
     'portfolio.eyebrow': 'Trabajo Seleccionado',
-    'portfolio.title': 'Entrando en la atmósfera',
+    'portfolio.titleA': 'Entrando en la',
+    'portfolio.titleB': 'atmósfera',
     'portfolio.desc': 'Una selección de plataformas y sistemas diseñados en nuestras divisiones.',
     'portfolio.view': 'Ver proyecto',
 
