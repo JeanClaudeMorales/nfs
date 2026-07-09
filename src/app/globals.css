@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --accent: #111111;
+}
+
+html {
+  background-color: var(--background);
+  color: var(--foreground);
+  /* Disable native scrolling, GSAP will handle it */
+  overflow: hidden; 
+  height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  background-color: #f3f3f4;
+}
+
+.font-serif-elegant {
+  font-family: var(--font-playfair), serif;
+}
+
+/* Geometric Grid Borders */
+.geo-border {
+  border: 1px solid rgba(17,17,17,0.08);
+}
+
+.geo-border-b {
+  border-bottom: 1px solid rgba(17,17,17,0.08);
+}
+
+.geo-border-r {
+  border-right: 1px solid rgba(17,17,17,0.08);
+}
+
+.snap-section {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  padding: 6rem 8%;
+  visibility: hidden; /* GSAP toggles via autoAlpha */
+  pointer-events: none; /* interactive children opt back in */
+  will-change: transform, opacity;
+}
+
+.align-left { justify-content: flex-start; }
+.align-right { justify-content: flex-end; }
+.align-center { justify-content: center; text-align: center; }
+
+/* Giant typography */
+.hero-title {
+  font-size: clamp(4rem, 12vw, 15rem);
+  font-weight: 100; /* Ultra thin / minimal */
+  line-height: 0.85;
+  letter-spacing: -0.06em;
+  color: var(--foreground);
+  text-transform: uppercase;
+  text-shadow: 0 4px 30px rgba(255,255,255, 0.5);
+}
+
+.section-title {
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 200;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--foreground);
+  text-transform: uppercase;
+}
+
+.section-subtitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  color: #ff6b00;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.body-text {
+  font-size: 1.1rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(17, 17, 17, 0.62);
+}
+
+/* Liquid glass panels.
+   The visual glass is a WebGL <canvas> injected by @ybouane/liquidglass as the
+   panel's first child, so the panel's own background stays transparent. The
+   values below are only a pre-init fallback (shown for the ~150ms before the
+   shader lands) and the rounded hit-area / drop shadow. */
+.glass-panel {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* Nav links */
+.nav-link {
+  color: rgba(17, 17, 17, 0.45);
+  font-family: var(--font-geist-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  transition: color 0.4s ease;
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.nav-link:hover, .nav-link-active {
+  color: var(--foreground);
+}
+
+/* Curved vertical indicator */
+.curved-indicator {
+  position: fixed;
+  right: 6%;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2rem;
+}
+
+.indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.indicator-number {
+  font-family: var(--font-geist-sans);
+  font-weight: 200;
+  line-height: 0.8;
+  color: var(--foreground);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.indicator-label {
+  font-family: var(--font-geist-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: rgba(17, 17, 17, 0.4);
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.indicator-item:hover .indicator-label {
+  opacity: 0.8;
+  transform: translateX(0);
+}
+
+/* Form input elements */
+.input-field {
+  width: 100%;
+  background: transparent;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.2);
+  padding: 1rem 0;
+  color: var(--foreground);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input-field:focus {
+  border-bottom-color: var(--accent);
+}
+
+.btn-primary {
+  display: inline-block;
+  background: var(--foreground);
+  color: var(--background);
+  padding: 1rem 3rem;
+  font-family: var(--font-geist-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Hollow Text */
+.text-hollow {
+  -webkit-text-stroke: 1px var(--foreground);
+  color: transparent;
+}
+
+.text-hollow-inactive {
+  -webkit-text-stroke: 1px rgba(17, 17, 17, 0.2);
+  color: transparent;
+}
+
+/* Curved Line SVG */
+.arc-line {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.arc-path {
+  fill: none;
+  stroke: rgba(17, 17, 17, 0.15);
+  stroke-width: 1;
+}
