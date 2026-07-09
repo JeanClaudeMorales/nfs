@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.gitignore
+npm-debug.log*
+README.md
+inspiracion
+scratch_scene.jsx
+.env*
+.vercel
+*.tsbuildinfo
