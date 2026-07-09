@@ -9,6 +9,10 @@ const S = {
   strokeLinejoin: 'round',
 };
 
+// Round trig coords so SSR and client render byte-identical strings (no
+// hydration mismatch).
+const r = (n) => Math.round(n * 100) / 100;
+
 const wrap = (children) => (
   <svg viewBox="0 0 48 48" width="100%" height="100%" aria-hidden>
     <g {...S}>{children}</g>
@@ -32,10 +36,10 @@ const Burst = () =>
       return (
         <line
           key={i}
-          x1={24 + Math.cos(a) * r1}
-          y1={24 + Math.sin(a) * r1}
-          x2={24 + Math.cos(a) * r2}
-          y2={24 + Math.sin(a) * r2}
+          x1={r(24 + Math.cos(a) * r1)}
+          y1={r(24 + Math.sin(a) * r1)}
+          x2={r(24 + Math.cos(a) * r2)}
+          y2={r(24 + Math.sin(a) * r2)}
         />
       );
     })
@@ -150,9 +154,9 @@ const Radiate = () =>
     Array.from({ length: 12 }).flatMap((_, i) => {
       const a = (i / 12) * Math.PI * 2;
       return [0, 1, 2].map((j) => {
-        const r = 8 + j * 5;
+        const rr = 8 + j * 5;
         return (
-          <circle key={`${i}-${j}`} cx={24 + Math.cos(a) * r} cy={24 + Math.sin(a) * r} r={1.3} fill="currentColor" stroke="none" />
+          <circle key={`${i}-${j}`} cx={r(24 + Math.cos(a) * rr)} cy={r(24 + Math.sin(a) * rr)} r={1.3} fill="currentColor" stroke="none" />
         );
       });
     })
