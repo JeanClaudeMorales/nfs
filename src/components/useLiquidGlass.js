@@ -2,15 +2,14 @@
 
 import { useEffect } from 'react';
 
-// Initialises the @ybouane/liquidglass WebGL effect on a set of glass panels.
+// Initialises @ybouane/liquidglass on a set of glass panels.
 //
 // Contract required by the library:
 //  - every glass element must be a DIRECT child of `root`;
-//  - the thing being refracted (here: the reparented react-three-fiber
-//    <canvas>, tagged data-dynamic) must also be a direct child of `root`;
-//  - init() is async and must run after webfonts are ready, otherwise text
-//    captured into the shader falls back to a system font.
-export default function useLiquidGlass(rootRef, getGlassElements, ready) {
+//  - the refracted content must also be a direct child of `root`
+//    (an <img>/<canvas>/<video>, or a data-dynamic node for live content);
+//  - init() is async and must run after webfonts are ready.
+export default function useLiquidGlass(rootRef, getGlassElements, ready, defaults = {}) {
   useEffect(() => {
     if (!ready) return;
     const root = rootRef.current;
@@ -21,9 +20,8 @@ export default function useLiquidGlass(rootRef, getGlassElements, ready) {
 
     (async () => {
       const { LiquidGlass } = await import('@ybouane/liquidglass');
-      // Webfonts must be embedded before capture or the glass shows Times.
       if (document.fonts?.ready) {
-        try { await document.fonts.ready; } catch { /* ignore */ }
+        try { await document.fonts.ready; } catch {}
       }
       if (destroyed) return;
 
@@ -34,20 +32,21 @@ export default function useLiquidGlass(rootRef, getGlassElements, ready) {
         root,
         glassElements,
         defaults: {
-          blurAmount: 0.18,
-          refraction: 0.78,
-          chromAberration: 0.09,
-          edgeHighlight: 0.55,
-          specular: 0.7,
+          blurAmount: 0.14,
+          refraction: 0.72,
+          chromAberration: 0.06,
+          edgeHighlight: 0.4,
+          specular: 0.6,
           fresnel: 1.0,
           cornerRadius: 40,
           zRadius: 24,
-          saturation: 0.18,
-          tintStrength: 0.07,
+          saturation: 0.14,
+          tintStrength: 0.05,
           brightness: 0.05,
-          shadowOpacity: 0.22,
-          shadowSpread: 18,
+          shadowOpacity: 0.2,
+          shadowSpread: 16,
           shadowOffsetY: 7,
+          ...defaults,
         },
       });
       if (destroyed && instance) instance.destroy();
