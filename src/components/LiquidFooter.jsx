@@ -56,8 +56,16 @@ function useGlowBackdrop(canvasRef, rootRef) {
       }
       raf = requestAnimationFrame(draw);
     };
-    draw();
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+
+    // Perf: only animate (and let the glass shader re-render) while the footer
+    // is near the viewport. Off-screen, drop data-dynamic so the shader idles.
+    let running = false;
+    const start = () => { if (!running) { running = true; canvas.setAttribute('data-dynamic', ''); draw(); } };
+    const stop = () => { if (running) { running = false; cancelAnimationFrame(raf); canvas.removeAttribute('data-dynamic'); } };
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()), { rootMargin: '200px' });
+    io.observe(root);
+
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); };
   }, [canvasRef, rootRef]);
 }
 
@@ -125,8 +133,8 @@ export default function LiquidFooter() {
 
   return (
     <footer ref={rootRef} className="lg-footer">
-      {/* live refracted backdrop */}
-      <canvas ref={bgRef} data-dynamic className="lg-footer-bg" />
+      {/* live refracted backdrop (data-dynamic toggled by IntersectionObserver) */}
+      <canvas ref={bgRef} className="lg-footer-bg" />
 
       {/* the glass panel */}
       <div ref={glassRef} className="lg-footer-glass">
