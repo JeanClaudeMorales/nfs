@@ -169,12 +169,24 @@ export default function LiquidFooter() {
             </div>
             <p className="footer-tagline">{t('footer.tagline')}</p>
             <p className="footer-loc"><UsFlag /> {L('United States of America', 'Estados Unidos de América')}</p>
+            <div className="footer-contact">
+              <a href={`mailto:${t('contact.email')}`}>{t('contact.email')}</a>
+              <a href={`tel:${t('contact.phoneRaw')}`}>{t('contact.phone')}</a>
+            </div>
           </div>
 
           <div className="footer-cols">
             {col(t('footer.company'), [L('About', 'Nosotros'), L('Vision', 'Visión'), L('Laboratories', 'Laboratorios'), L('Careers', 'Carreras'), L('Contact', 'Contacto')])}
             {col(t('footer.divisions'), [L('Artificial Intelligence', 'Inteligencia Artificial'), L('Telecommunications', 'Telecomunicaciones'), L('Simulation', 'Simulación'), 'Cloud', L('Data Intelligence', 'Inteligencia de Datos')])}
-            {col(t('footer.connect'), ['LinkedIn', 'X / Twitter', 'GitHub', 'Email'])}
+            <div>
+              <h4 className="footer-col-title">{t('footer.connect')}</h4>
+              <ul className="footer-links">
+                <li><a href="#">LinkedIn</a></li>
+                <li><a href="#">X / Twitter</a></li>
+                <li><a href="#">GitHub</a></li>
+                <li><a href={`mailto:${t('contact.email')}`}>Email</a></li>
+              </ul>
+            </div>
           </div>
 
           <div className="footer-news">

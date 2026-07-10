@@ -5,6 +5,7 @@ import ImmersiveScene from '@/components/ImmersiveScene';
 import LiquidFooter from '@/components/LiquidFooter';
 import Icon from '@/components/icons';
 import AgentGraph from '@/components/AgentGraph';
+import AutoimmuneFlow from '@/components/AutoimmuneFlow';
 import { Reveal, RevealGroup, RevealItem, Parallax } from '@/components/anim';
 import { useI18n } from '@/lib/i18n';
 import { divisions, labs, industries, portfolio } from '@/lib/content';
@@ -282,6 +283,20 @@ export default function Home() {
             </RevealGroup>
           </section>
 
+          {/* AI LAB IN ACTION — autoimmune cure research flow (React Flow) */}
+          <section id="ai-lab" className="section">
+            <div className="section-head">
+              <div>
+                <Reveal as="p" className="eyebrow">{t('ailab.eyebrow')}</Reveal>
+                <Reveal delay={0.05}><MixedTitle a={t('ailab.titleA')} b={t('ailab.titleB')} /></Reveal>
+              </div>
+              <Reveal className="section-head-desc body-text" delay={0.1}>{t('ailab.desc')}</Reveal>
+            </div>
+            <Reveal delay={0.1}>
+              <AutoimmuneFlow lang={lang} />
+            </Reveal>
+          </section>
+
           {/* INDUSTRIES */}
           <section id="industries" className="section">
             <span className="section-index">03</span>
@@ -314,6 +329,31 @@ export default function Home() {
                 <span className="vision-mark"><Icon name="orbit" /></span>
                 <h3 className="vision-title"><span className="t-serif">{t('vision.missionTitle')}</span></h3>
                 <p className="body-text">{t('vision.mission')}</p>
+              </Reveal>
+            </div>
+          </section>
+
+          {/* FOUNDER / CEO */}
+          <section id="founder" className="section founder">
+            <Reveal className="founder-photo">
+              <img src="/founder.jpg" alt={t('founder.name')} loading="lazy" onError={(e) => { e.currentTarget.style.opacity = 0; }} />
+              <span className="founder-badge"><Icon name="saturn" /></span>
+            </Reveal>
+            <div className="founder-info">
+              <Reveal as="p" className="eyebrow">{t('founder.eyebrow')}</Reveal>
+              <Reveal delay={0.05}>
+                <h2 className="founder-name">
+                  <span className="t-sans">Jean Claude </span><span className="t-serif">Morales</span>
+                </h2>
+              </Reveal>
+              <Reveal as="p" className="founder-role" delay={0.1}>{t('founder.role')}</Reveal>
+              <Reveal className="body-text" delay={0.15}>{t('founder.bio')}</Reveal>
+              <Reveal className="founder-contact" delay={0.2}>
+                <a href={`mailto:${t('contact.email')}`} className="founder-link"><Icon name="signal" /> {t('contact.email')}</a>
+                <a href={`tel:${t('contact.phoneRaw')}`} className="founder-link"><Icon name="route" /> {t('contact.phone')}</a>
+              </Reveal>
+              <Reveal delay={0.25}>
+                <a href={`mailto:${t('contact.email')}`} className="btn-primary">{t('founder.contactCta')} <span className="arr">↗</span></a>
               </Reveal>
             </div>
           </section>

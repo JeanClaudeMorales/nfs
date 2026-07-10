@@ -37,6 +37,11 @@ const STRINGS = {
     'labs.desc': 'Our laboratories develop next-generation technologies through high-precision simulation, artificial intelligence and scientific computing.',
     'labs.research': 'Research areas',
 
+    'ailab.eyebrow': 'Medical AI Laboratory · Live',
+    'ailab.titleA': 'Searching for cures to',
+    'ailab.titleB': 'autoimmune disease',
+    'ailab.desc': 'A live view of how our Medical AI lab pipelines real patient data into validated therapy candidates — learning the immune mechanism, simulating each patient as a digital twin, and generating molecules against the autoimmune target.',
+
     'industries.eyebrow': 'Industries We Serve',
     'industries.titleA': 'Built for the sectors',
     'industries.titleB': 'that move the world',
@@ -46,6 +51,16 @@ const STRINGS = {
     'vision.vision': 'To become one of the world\'s leading deep-technology companies by creating intelligent systems that transform how humanity designs, operates, simulates, and understands complex environments.',
     'vision.missionTitle': 'Our Mission',
     'vision.mission': 'To engineer advanced technologies that combine artificial intelligence, scientific research, large-scale simulation, and software engineering into solutions that solve humanity\'s most complex challenges.',
+
+    'founder.eyebrow': 'Founder & CEO',
+    'founder.name': 'Jean Claude Morales',
+    'founder.role': 'Engineer · Founder',
+    'founder.bio': 'An engineer and founder building at the intersection of artificial intelligence, scientific simulation and large-scale software. He leads Next Frontier Systems with a single conviction: the hardest problems in healthcare, telecommunications and infrastructure are solved by engineering the fundamental technologies beneath them — not by shipping another app.',
+    'founder.contactCta': 'Work with us',
+
+    'contact.email': 'admin@nextfrontiersystem.com',
+    'contact.phone': '+1 786 984 4177',
+    'contact.phoneRaw': '+17869844177',
 
     'portfolio.eyebrow': 'Selected Work',
     'portfolio.titleA': 'Entering the',
@@ -99,6 +114,11 @@ const STRINGS = {
     'labs.desc': 'Nuestros laboratorios desarrollan tecnologías de próxima generación mediante simulación de alta precisión, inteligencia artificial y computación científica.',
     'labs.research': 'Áreas de investigación',
 
+    'ailab.eyebrow': 'Laboratorio de IA Médica · En vivo',
+    'ailab.titleA': 'En busca de curas para',
+    'ailab.titleB': 'enfermedades autoinmunes',
+    'ailab.desc': 'Una vista en vivo de cómo nuestro laboratorio de IA médica convierte datos reales de pacientes en candidatos terapéuticos validados — aprendiendo el mecanismo inmune, simulando cada paciente como gemelo digital y generando moléculas contra la diana autoinmune.',
+
     'industries.eyebrow': 'Industrias que Servimos',
     'industries.titleA': 'Construido para los sectores',
     'industries.titleB': 'que mueven el mundo',
@@ -108,6 +128,16 @@ const STRINGS = {
     'vision.vision': 'Convertirnos en una de las empresas líderes de tecnología profunda del mundo, creando sistemas inteligentes que transformen la forma en que la humanidad diseña, opera, simula y comprende entornos complejos.',
     'vision.missionTitle': 'Nuestra Misión',
     'vision.mission': 'Diseñar tecnologías avanzadas que combinen inteligencia artificial, investigación científica, simulación a gran escala e ingeniería de software en soluciones que resuelvan los desafíos más complejos de la humanidad.',
+
+    'founder.eyebrow': 'Fundador y CEO',
+    'founder.name': 'Jean Claude Morales',
+    'founder.role': 'Ingeniero · Fundador',
+    'founder.bio': 'Ingeniero y fundador que construye en la intersección de la inteligencia artificial, la simulación científica y el software a gran escala. Lidera Next Frontier Systems con una sola convicción: los problemas más difíciles en salud, telecomunicaciones e infraestructura se resuelven diseñando las tecnologías fundamentales que hay debajo, no lanzando otra aplicación.',
+    'founder.contactCta': 'Trabaja con nosotros',
+
+    'contact.email': 'admin@nextfrontiersystem.com',
+    'contact.phone': '+1 786 984 4177',
+    'contact.phoneRaw': '+17869844177',
 
     'portfolio.eyebrow': 'Trabajo Seleccionado',
     'portfolio.titleA': 'Entrando en la',
