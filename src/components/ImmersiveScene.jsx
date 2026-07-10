@@ -80,26 +80,28 @@ function GlowSprite() {
 // ---------------------------------------------------------------------------
 function Atmosphere() {
   const g = useRef();
+  // drei <Cloud> re-applies opacity from its PROP every frame, so a ref-traverse
+  // is overwritten. Drive the opacity prop via throttled state instead.
+  const [op, setOp] = useState(0);
+  const opRef = useRef(0);
+
   useFrame((state, delta) => {
-    if (!g.current) return;
     const p = clamp01(sceneState.current);
-    // Ramp in through the second half (fly INTO the clouds on approach).
-    const amt = clamp01((p - 0.35) / 0.55);
-    g.current.visible = amt > 0.01;
-    if (!g.current.visible) return;
-    g.current.rotation.y += delta * 0.05;
-    g.current.traverse((o) => {
-      if (o.material && 'opacity' in o.material) o.material.opacity = amt;
-    });
+    const target = clamp01((p - 0.32) / 0.5); // fly INTO the clouds on approach
+    if (Math.abs(target - opRef.current) > 0.03) { opRef.current = target; setOp(target); }
+    if (g.current) g.current.rotation.y += delta * 0.05;
   });
+
+  if (op <= 0.01) return null;
+  const o = op * 0.95;
   return (
-    <group ref={g} visible={false}>
-      {/* Cool-grey so they read against the near-white background. */}
-      <Clouds limit={320}>
-        <Cloud seed={1} segments={34} bounds={[10, 3, 10]} volume={9} color="#c3ccdb" fade={11} speed={0.2} position={[0, 0.4, 3]} />
-        <Cloud seed={4} segments={30} bounds={[9, 2.6, 9]} volume={8} color="#d2d8e4" fade={10} speed={0.24} position={[3.5, -1.4, -1]} />
-        <Cloud seed={7} segments={26} bounds={[8.5, 2.2, 8.5]} volume={7} color="#b7c1d4" fade={10} speed={0.28} position={[-3.5, 1.6, 2]} />
-        <Cloud seed={11} segments={22} bounds={[7.5, 2, 7.5]} volume={6} color="#dfe4ee" fade={12} speed={0.32} position={[0, -2, -3]} />
+    <group ref={g}>
+      {/* Cool-grey, centred and large so puffs surround the sphere in view. */}
+      <Clouds limit={400}>
+        <Cloud seed={1} segments={40} bounds={[12, 3.5, 12]} volume={11} color="#b9c3d6" fade={9} speed={0.2} opacity={o} position={[0, 0.3, 2]} />
+        <Cloud seed={4} segments={34} bounds={[10, 3, 10]} volume={9} color="#ccd3e0" fade={9} speed={0.24} opacity={o * 0.9} position={[4, -1.6, -1]} />
+        <Cloud seed={7} segments={30} bounds={[10, 2.6, 10]} volume={8} color="#aab6cc" fade={8} speed={0.28} opacity={o * 0.9} position={[-4, 1.8, 2]} />
+        <Cloud seed={11} segments={26} bounds={[9, 2.4, 9]} volume={7} color="#d7dce8" fade={10} speed={0.32} opacity={o * 0.8} position={[0, -2.2, -2]} />
       </Clouds>
     </group>
   );
