@@ -6,6 +6,7 @@ import LiquidFooter from '@/components/LiquidFooter';
 import Icon from '@/components/icons';
 import AgentGraph from '@/components/AgentGraph';
 import AutoimmuneFlow from '@/components/AutoimmuneFlow';
+import Contributions from '@/components/Contributions';
 import { Reveal, RevealGroup, RevealItem, Parallax } from '@/components/anim';
 import { useI18n } from '@/lib/i18n';
 import { divisions, labs, industries, portfolio } from '@/lib/content';
@@ -335,27 +336,30 @@ export default function Home() {
 
           {/* FOUNDER / CEO */}
           <section id="founder" className="section founder">
-            <Reveal className="founder-photo">
-              <img src="/founder.jpg" alt={t('founder.name')} loading="lazy" onError={(e) => { e.currentTarget.style.opacity = 0; }} />
-              <span className="founder-badge"><Icon name="saturn" /></span>
-            </Reveal>
-            <div className="founder-info">
-              <Reveal as="p" className="eyebrow">{t('founder.eyebrow')}</Reveal>
-              <Reveal delay={0.05}>
-                <h2 className="founder-name">
-                  <span className="t-sans">Jean Claude </span><span className="t-serif">Morales</span>
-                </h2>
+            <div className="founder-grid">
+              <Reveal className="founder-photo">
+                <img src="/founder.jpg" alt={t('founder.name')} loading="lazy" onError={(e) => { e.currentTarget.style.opacity = 0; }} />
+                <span className="founder-badge"><Icon name="saturn" /></span>
               </Reveal>
-              <Reveal as="p" className="founder-role" delay={0.1}>{t('founder.role')}</Reveal>
-              <Reveal className="body-text" delay={0.15}>{t('founder.bio')}</Reveal>
-              <Reveal className="founder-contact" delay={0.2}>
-                <a href={`mailto:${t('contact.email')}`} className="founder-link"><Icon name="signal" /> {t('contact.email')}</a>
-                <a href={`tel:${t('contact.phoneRaw')}`} className="founder-link"><Icon name="route" /> {t('contact.phone')}</a>
-              </Reveal>
-              <Reveal delay={0.25}>
-                <a href={`mailto:${t('contact.email')}`} className="btn-primary">{t('founder.contactCta')} <span className="arr">↗</span></a>
-              </Reveal>
+              <div className="founder-info">
+                <Reveal as="p" className="eyebrow">{t('founder.eyebrow')}</Reveal>
+                <Reveal delay={0.05}>
+                  <h2 className="founder-name">
+                    <span className="t-sans">Jean Claude </span><span className="t-serif">Morales</span>
+                  </h2>
+                </Reveal>
+                <Reveal as="p" className="founder-role" delay={0.1}>{t('founder.role')}</Reveal>
+                <Reveal className="body-text" delay={0.15}>{t('founder.bio')}</Reveal>
+                <Reveal className="founder-contact" delay={0.2}>
+                  <a href={`mailto:${t('contact.email')}`} className="founder-link"><Icon name="signal" /> {t('contact.email')}</a>
+                  <a href={`tel:${t('contact.phoneRaw')}`} className="founder-link"><Icon name="route" /> {t('contact.phone')}</a>
+                </Reveal>
+                <Reveal delay={0.25}>
+                  <a href={`mailto:${t('contact.email')}`} className="btn-primary">{t('founder.contactCta')} <span className="arr">↗</span></a>
+                </Reveal>
+              </div>
             </div>
+            <Contributions />
           </section>
         </div>
 

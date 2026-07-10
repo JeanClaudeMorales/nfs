@@ -57,6 +57,9 @@ const STRINGS = {
     'founder.role': 'Engineer · Founder',
     'founder.bio': 'An engineer and founder building at the intersection of artificial intelligence, scientific simulation and large-scale software. He leads Next Frontier Systems with a single conviction: the hardest problems in healthcare, telecommunications and infrastructure are solved by engineering the fundamental technologies beneath them — not by shipping another app.',
     'founder.contactCta': 'Work with us',
+    'contrib.eyebrow': 'Scientific Contributions',
+    'contrib.title': 'Research & projects',
+    'contrib.read': 'Read',
 
     'contact.email': 'admin@nextfrontiersystem.com',
     'contact.phone': '+1 786 984 4177',
@@ -134,6 +137,9 @@ const STRINGS = {
     'founder.role': 'Ingeniero · Fundador',
     'founder.bio': 'Ingeniero y fundador que construye en la intersección de la inteligencia artificial, la simulación científica y el software a gran escala. Lidera Next Frontier Systems con una sola convicción: los problemas más difíciles en salud, telecomunicaciones e infraestructura se resuelven diseñando las tecnologías fundamentales que hay debajo, no lanzando otra aplicación.',
     'founder.contactCta': 'Trabaja con nosotros',
+    'contrib.eyebrow': 'Aportes Científicos',
+    'contrib.title': 'Investigación y proyectos',
+    'contrib.read': 'Leer',
 
     'contact.email': 'admin@nextfrontiersystem.com',
     'contact.phone': '+1 786 984 4177',

@@ -83,20 +83,23 @@ function Atmosphere() {
   useFrame((state, delta) => {
     if (!g.current) return;
     const p = clamp01(sceneState.current);
-    const amt = clamp01((p - 0.5) / 0.5); // 0 until halfway, then ramps in
-    g.current.visible = amt > 0.02;
+    // Ramp in through the second half (fly INTO the clouds on approach).
+    const amt = clamp01((p - 0.35) / 0.55);
+    g.current.visible = amt > 0.01;
     if (!g.current.visible) return;
-    g.current.rotation.y += delta * 0.04;
+    g.current.rotation.y += delta * 0.05;
     g.current.traverse((o) => {
       if (o.material && 'opacity' in o.material) o.material.opacity = amt;
     });
   });
   return (
     <group ref={g} visible={false}>
-      <Clouds limit={260}>
-        <Cloud seed={1} segments={30} bounds={[7, 2.4, 7]} volume={7} color="#ffffff" fade={16} speed={0.18} position={[0, 0.5, 2]} />
-        <Cloud seed={4} segments={26} bounds={[6.5, 2, 6.5]} volume={6} color="#ffeede" fade={15} speed={0.22} position={[2.5, -1, -1]} />
-        <Cloud seed={7} segments={22} bounds={[6, 1.8, 6]} volume={5} color="#eef2ff" fade={14} speed={0.26} position={[-2.5, 1.4, 1.5]} />
+      {/* Cool-grey so they read against the near-white background. */}
+      <Clouds limit={320}>
+        <Cloud seed={1} segments={34} bounds={[10, 3, 10]} volume={9} color="#c3ccdb" fade={11} speed={0.2} position={[0, 0.4, 3]} />
+        <Cloud seed={4} segments={30} bounds={[9, 2.6, 9]} volume={8} color="#d2d8e4" fade={10} speed={0.24} position={[3.5, -1.4, -1]} />
+        <Cloud seed={7} segments={26} bounds={[8.5, 2.2, 8.5]} volume={7} color="#b7c1d4" fade={10} speed={0.28} position={[-3.5, 1.6, 2]} />
+        <Cloud seed={11} segments={22} bounds={[7.5, 2, 7.5]} volume={6} color="#dfe4ee" fade={12} speed={0.32} position={[0, -2, -3]} />
       </Clouds>
     </group>
   );
@@ -107,10 +110,11 @@ function Atmosphere() {
 // way to the footer (near / inside). One direction, never big->small->big.
 // ---------------------------------------------------------------------------
 const R_FAR = 22;    // hero: sphere sizeable but with room ahead
-const R_NEAR = 5.4;  // footer: sphere fills the frame (inside the atmosphere)
-const CAM_HEIGHT = 0.3;
+const R_NEAR = 5.0;  // footer: sphere fills the frame (inside the atmosphere)
 const ANGLE_BASE = THREE.MathUtils.degToRad(205);
-const ANGLE_SWEEP = THREE.MathUtils.degToRad(150); // big cinematic orbit
+const ANGLE_SWEEP = THREE.MathUtils.degToRad(255); // long re-entry spiral
+const H_START = 7.2; // starts high, looking down
+const H_END = 0.2;   // descends to near the equator
 const LIGHT_BASE = THREE.MathUtils.degToRad(70);
 
 function CameraRig({ lightRef }) {
@@ -124,23 +128,25 @@ function CameraRig({ lightRef }) {
     const e = smooth(p);
     const t = state.clock.elapsedTime;
 
-    // FPV-drone approach: orbit + rise/fall arc + slow idle drift so the shot
-    // is never static, all while closing the distance to the sphere.
+    // Re-entry: a DESCENDING SPIRAL — high & far, sweeping down and around as
+    // it closes on the sphere. More orbit + a curved fall = cinematic dive.
     const radius = THREE.MathUtils.lerp(R_FAR, R_NEAR, e);
-    const a = ANGLE_BASE + e * ANGLE_SWEEP + Math.sin(t * 0.14) * 0.06;
-    const h = CAM_HEIGHT + Math.sin(e * Math.PI) * 2.6 + Math.sin(t * 0.22) * 0.35;
+    const a = ANGLE_BASE + e * ANGLE_SWEEP + Math.sin(t * 0.14) * 0.05;
+    // ease the descent (starts gentle, steepens) for a curved re-entry arc
+    const hDrop = THREE.MathUtils.lerp(H_START, H_END, e * e * (3 - 2 * e));
+    const h = hDrop + Math.sin(e * Math.PI) * 1.6 + Math.sin(t * 0.22) * 0.3;
     pos.current.set(Math.sin(a) * radius, h, Math.cos(a) * radius);
     state.camera.position.copy(pos.current);
 
     // Off-centre, drifting framing (the sphere isn't glued to the middle).
     target.current.set(
       THREE.MathUtils.lerp(-1.8, 0, e) + Math.sin(t * 0.13) * 0.45,
-      Math.cos(t * 0.17) * 0.3,
+      THREE.MathUtils.lerp(1.4, 0, e) + Math.cos(t * 0.17) * 0.3,
       0
     );
     state.camera.lookAt(target.current);
-    // Subtle banking roll for the FPV feel.
-    state.camera.rotateZ(Math.sin(t * 0.25) * 0.03 + (e - 0.5) * 0.05);
+    // Banking roll — stronger through the turn for the re-entry feel.
+    state.camera.rotateZ(Math.sin(t * 0.25) * 0.03 + Math.sin(e * Math.PI) * 0.08);
 
     if (lightRef.current) {
       const la = LIGHT_BASE - e * 0.5;
@@ -181,7 +187,7 @@ function Scene() {
 }
 
 const INITIAL_CAMERA = {
-  position: [Math.sin(ANGLE_BASE) * R_FAR, CAM_HEIGHT, Math.cos(ANGLE_BASE) * R_FAR],
+  position: [Math.sin(ANGLE_BASE) * R_FAR, H_START, Math.cos(ANGLE_BASE) * R_FAR],
   fov: 38,
 };
 

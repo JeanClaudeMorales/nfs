@@ -1,0 +1,20 @@
+[
+  {
+    "id": "seed-1",
+    "title": "Patient Digital Twin for Autoimmune Response",
+    "project": "Medical AI Laboratory",
+    "year": "2025",
+    "role": "Principal Investigator",
+    "description": "Physiological simulation engine that models an individual patient’s immune system to predict flare-ups and therapy response before treatment.",
+    "link": ""
+  },
+  {
+    "id": "seed-2",
+    "title": "Carrier-Grade Network Digital Twin",
+    "project": "Telecommunications Laboratory",
+    "year": "2024",
+    "role": "Lead Engineer",
+    "description": "Real-time twin of an FTTH/GPON operator network enabling capacity planning and predictive maintenance across millions of subscribers.",
+    "link": ""
+  }
+]

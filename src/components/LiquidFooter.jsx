@@ -47,35 +47,14 @@ function useGlowBackdrop(canvasRef, rootRef) {
         const cy = (o.y + Math.cos(t * o.sy) * 0.15) * h;
         const rad = o.r * Math.min(w, h);
         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-        g.addColorStop(0, o.c + 'cc');
+        g.addColorStop(0, o.c + 'e6');
+        g.addColorStop(0.5, o.c + '55');
         g.addColorStop(1, o.c + '00');
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(cx, cy, rad, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      // Crisp geometry so the glass has real edges to refract (chromatic
-      // aberration + distortion only show up on high-contrast content).
-      ctx.save();
-      ctx.strokeStyle = 'rgba(17,18,20,0.10)';
-      ctx.lineWidth = 1;
-      const step = 46 * dpr;
-      ctx.beginPath();
-      for (let x = 0; x <= w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
-      for (let y = 0; y <= h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
-      ctx.stroke();
-      // drifting concentric rings
-      const rx = (0.3 + Math.sin(t * 0.00004) * 0.06) * w;
-      const ry = 0.5 * h;
-      ctx.strokeStyle = 'rgba(17,18,20,0.14)';
-      for (let i = 1; i <= 7; i++) {
-        ctx.beginPath();
-        ctx.arc(rx, ry, i * 34 * dpr, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      ctx.restore();
-
       raf = requestAnimationFrame(draw);
     };
 
@@ -124,23 +103,25 @@ export default function LiquidFooter() {
   useEffect(() => setReady(true), []);
 
   // High chromatic aberration + transparency = realistic refractive glass.
+  // Clean floating-glass slab: bright rim, gentle refraction of the aurora
+  // backdrop, subtle chromatic fringe (not a rainbow), see-through body.
   useLiquidGlass(rootRef, () => [glassRef.current], ready, {
-    blurAmount: 0.08,
-    refraction: 1.0,
-    chromAberration: 0.32,
+    blurAmount: 0.06,
+    refraction: 0.7,
+    chromAberration: 0.1,
     edgeHighlight: 1.0,
-    specular: 1.0,
+    specular: 0.85,
     fresnel: 1.0,
-    distortion: 0.12,
-    cornerRadius: 32,
-    zRadius: 40,
-    saturation: 0.45,
-    tintStrength: 0.05,
-    brightness: 0.03,
-    opacity: 0.68,
-    shadowOpacity: 0.32,
-    shadowSpread: 34,
-    shadowOffsetY: 14,
+    distortion: 0.0,
+    cornerRadius: 34,
+    zRadius: 44,
+    saturation: 0.2,
+    tintStrength: 0.03,
+    brightness: 0.06,
+    opacity: 0.5,
+    shadowOpacity: 0.28,
+    shadowSpread: 40,
+    shadowOffsetY: 16,
   });
 
   const col = (heading, links) => (
