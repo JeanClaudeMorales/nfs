@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import ImmersiveScene from '@/components/ImmersiveScene';
 import LiquidFooter from '@/components/LiquidFooter';
 import Icon from '@/components/icons';
+import AgentGraph from '@/components/AgentGraph';
 import { Reveal, RevealGroup, RevealItem, Parallax } from '@/components/anim';
 import { useI18n } from '@/lib/i18n';
 import { divisions, labs, industries, portfolio } from '@/lib/content';
@@ -59,6 +60,78 @@ function Nav() {
   );
 }
 
+const IND = [
+  ['hero', 'Core'],
+  ['divisions', 'nav.divisions'],
+  ['labs', 'nav.labs'],
+  ['industries', 'nav.industries'],
+  ['vision', 'nav.vision'],
+  ['portfolio', 'nav.portfolio'],
+];
+
+// Orbital page indicator: dots on an arc around the sphere, with two
+// counter-rotating "gear" rings marking the active section.
+function OrbitIndicator() {
+  const { t } = useI18n();
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const ids = IND.map(([id]) => id);
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const i = ids.indexOf(e.target.id);
+            if (i >= 0) setActive(i);
+          }
+        });
+      },
+      { rootMargin: '-45% 0px -45% 0px' }
+    );
+    ids.forEach((id) => { const el = document.getElementById(id); if (el) obs.observe(el); });
+    return () => obs.disconnect();
+  }, []);
+
+  const n = IND.length;
+  const pts = IND.map((_, i) => {
+    const f = i / (n - 1);
+    return { x: 20 + Math.sin(f * Math.PI) * 42, y: 40 + f * 620 };
+  });
+  const go = (id) => () => {
+    const el = document.getElementById(id);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const a = pts[active];
+
+  return (
+    <div className="orbit-ind" aria-hidden={false}>
+      <svg viewBox="0 0 90 700" width="90" height="700">
+        <path d={`M ${pts[0].x} ${pts[0].y} ${pts.map((p) => `L ${p.x} ${p.y}`).join(' ')}`} className="orbit-path" />
+        {pts.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r={i === active ? 4.5 : 2.6} className={`orbit-dot ${i === active ? 'on' : ''}`} onClick={go(IND[i][0])} style={{ cursor: 'pointer' }} />
+        ))}
+      </svg>
+      {/* counter-rotating gear rings at the active dot */}
+      <div className="gear gear-a" style={{ top: a.y, left: a.x }} />
+      <div className="gear gear-b" style={{ top: a.y, left: a.x }} />
+      <span className="orbit-label" style={{ top: a.y }}>{t(IND[active][1])}</span>
+    </div>
+  );
+}
+
+function Carousel({ children }) {
+  const ref = useRef(null);
+  const by = (dir) => ref.current?.scrollBy({ left: dir * 372, behavior: 'smooth' });
+  return (
+    <div className="carousel">
+      <div className="carousel-track" ref={ref}>{children}</div>
+      <div className="carousel-nav">
+        <button aria-label="Previous" onClick={() => by(-1)}>←</button>
+        <button aria-label="Next" onClick={() => by(1)}>→</button>
+      </div>
+    </div>
+  );
+}
+
 function Accordion({ items, lang }) {
   const [open, setOpen] = useState(0);
   return (
@@ -95,16 +168,9 @@ export default function Home() {
     let raf = 0;
     const update = () => {
       raf = 0;
-      const vh = window.innerHeight;
-      const max = document.documentElement.scrollHeight - vh;
-      const overall = max > 0 ? window.scrollY / max : 0;
-      sceneState.target = Math.min(1, overall * 1.3);
-      const r = portfolioRef.current?.getBoundingClientRect();
-      if (r) {
-        const enter = Math.min(1, Math.max(0, (vh - r.top) / vh));
-        const exit = Math.min(1, Math.max(0, r.bottom / vh));
-        sceneState.dive = Math.min(enter, exit);
-      }
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      // Monotonic 0..1 across the whole page: the sphere grows the whole way.
+      sceneState.target = max > 0 ? Math.min(1, window.scrollY / max) : 0;
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
     update();
@@ -119,12 +185,23 @@ export default function Home() {
       <Nav />
 
       <main id="top" className="content">
+        <OrbitIndicator />
         {/* HERO */}
-        <section className="hero">
+        <section id="hero" className="hero">
           <Reveal as="p" className="eyebrow">{t('hero.eyebrow')}</Reveal>
           <Reveal as="h1" className="hero-title" delay={0.05}>
-            <span className="t-sans">{t('hero.titleA')} </span>
-            <span className="t-serif">{t('hero.titleB')}</span>
+            {(() => {
+              const accent = lang === 'es' ? 'próxima' : 'next';
+              const [pre, post] = t('hero.titleA').split(accent);
+              return (
+                <>
+                  <span className="t-sans">{pre}</span>
+                  <span className="t-serif">{accent}</span>
+                  <span className="t-sans">{post} </span>
+                  <span className="t-serif">{t('hero.titleB')}</span>
+                </>
+              );
+            })()}
           </Reveal>
           <Reveal className="hero-sub" delay={0.15}>{t('hero.sub')}</Reveal>
           <Reveal className="hero-actions" delay={0.25}>
@@ -148,6 +225,10 @@ export default function Home() {
                 <Reveal className="body-text strong" delay={0.2}>{t('intro.body2')}</Reveal>
               </div>
             </div>
+            <Reveal className="ag-wrap" delay={0.15}>
+              <span className="ag-tag">{lang === 'es' ? 'Orquestación multi-agente · en vivo' : 'Multi-agent orchestration · live'}</span>
+              <AgentGraph />
+            </Reveal>
           </section>
 
           {/* DIVISIONS */}
@@ -160,11 +241,11 @@ export default function Home() {
               </div>
               <Reveal className="section-head-desc body-text" delay={0.1}>{t('divisions.desc')}</Reveal>
             </div>
-            <RevealGroup className="card-grid" stagger={0.05}>
+            <Carousel>
               {divisions.map((div) => {
                 const d = div[lang];
                 return (
-                  <RevealItem key={d.title} className="card">
+                  <div key={d.title} className="card">
                     <span className="card-icon"><Icon name={div.icon} /></span>
                     <h3 className="card-title">{d.title}</h3>
                     <p className="card-desc">{d.desc}</p>
@@ -172,10 +253,10 @@ export default function Home() {
                       {d.tags.slice(0, 5).map((tg) => <span key={tg} className="tag">{tg}</span>)}
                     </div>
                     <a href="#" className="card-link">{t('common.readmore')} <span>→</span></a>
-                  </RevealItem>
+                  </div>
                 );
               })}
-            </RevealGroup>
+            </Carousel>
           </section>
 
           {/* LABS */}

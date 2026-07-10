@@ -7,190 +7,170 @@ import { Environment, Lightformer, Clouds, Cloud } from '@react-three/drei';
 import sceneState from './sceneState';
 
 const smooth = (s) => s * s * s * (s * (s * 6 - 15) + 10);
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 // ---------------------------------------------------------------------------
-// ECLIPSE MATERIAL — meshStandardMaterial + warm Fresnel "event-horizon" rim.
+// SPHERE MATERIAL — clean white, soft sheen (photoreal). A faint warm Fresnel
+// keeps the limb alive; the real "light behind" is the additive GlowSprite.
 // ---------------------------------------------------------------------------
-function useEclipseMaterial() {
-  const uniforms = useRef({
-    uLightDir: { value: new THREE.Vector3(1, 0, 0.3).normalize() },
-    uRimColor: { value: new THREE.Color('#ffcf9c') },
-    uRimStrength: { value: 1.05 },
-    uRimPower: { value: 2.9 },
-  });
-
+function useSphereMaterial() {
   const material = useMemo(() => {
-    const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.92, metalness: 0.0, envMapIntensity: 0.45 });
+    const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.48, metalness: 0.0, envMapIntensity: 0.9 });
     m.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, uniforms.current);
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vWorldNormal;')
-        .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n  vWorldNormal = normalize(mat3(modelMatrix) * objectNormal);');
+      shader.uniforms.uRim = { value: new THREE.Color('#ffd9ad') };
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vWorldNormal;\nuniform vec3 uLightDir;\nuniform vec3 uRimColor;\nuniform float uRimStrength;\nuniform float uRimPower;')
+        .replace('#include <common>', '#include <common>\nuniform vec3 uRim;')
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  float _fres = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), uRimPower);
-  float _facing = clamp(dot(normalize(vWorldNormal), normalize(uLightDir)), 0.0, 1.0);
-  totalEmissiveRadiance += uRimColor * _fres * (0.32 + 1.1 * _facing) * uRimStrength;`);
+  float _f = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.2);
+  totalEmissiveRadiance += uRim * _f * 0.35;`);
     };
     return m;
   }, []);
-
-  return { material, uniforms: uniforms.current };
+  return material;
 }
 
 // ---------------------------------------------------------------------------
-// EVENT-HORIZON GLOW SHELL — an additive Fresnel corona just outside the
-// sphere's silhouette. Brightest in the hero (far), fades as we dive in.
+// GLOW SPRITE — a billboarded additive plane with a soft Gaussian falloff.
+// Rendered behind the sphere (sphere occludes its core), so only the diffuse
+// halo spills around the silhouette = real backlight, not a painted ring.
 // ---------------------------------------------------------------------------
-function GlowShell({ uniforms }) {
+function GlowSprite() {
+  const mesh = useRef();
   const mat = useMemo(
     () =>
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        side: THREE.FrontSide,
         uniforms: {
-          uColor: { value: new THREE.Color('#ffc48a') },
-          uCore: { value: new THREE.Color('#fff6ec') },
+          uColor: { value: new THREE.Color('#ffb060') },
+          uCore: { value: new THREE.Color('#fff1e0') },
           uIntensity: { value: 1.0 },
-          uPower: { value: 4.2 },
         },
-        vertexShader: `
-          varying vec3 vN; varying vec3 vV;
-          void main(){
-            vec4 mv = modelViewMatrix * vec4(position,1.0);
-            vN = normalize(normalMatrix * normal);
-            vV = normalize(-mv.xyz);
-            gl_Position = projectionMatrix * mv;
-          }`,
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);} `,
         fragmentShader: `
-          uniform vec3 uColor; uniform vec3 uCore; uniform float uIntensity; uniform float uPower;
-          varying vec3 vN; varying vec3 vV;
+          uniform vec3 uColor; uniform vec3 uCore; uniform float uIntensity; varying vec2 vUv;
           void main(){
-            float f = 1.0 - clamp(dot(vN, vV), 0.0, 1.0);
-            float rim = pow(f, uPower);
-            vec3 col = mix(uColor, uCore, pow(f, uPower*2.0));
-            gl_FragColor = vec4(col, rim * uIntensity);
+            float r = length(vUv - 0.5) * 2.0;          // 0 center .. 1 edge
+            float g = exp(-r*r*6.5);                     // soft gaussian (fades before plane edge)
+            float core = exp(-r*r*16.0);                 // hotter middle
+            vec3 col = mix(uColor, uCore, core);
+            gl_FragColor = vec4(col, (g*1.1 + core*0.7) * uIntensity);
           }`,
       }),
     []
   );
-  const geo = useMemo(() => new THREE.SphereGeometry(3.3, 96, 96), []);
-  useFrame(() => {
-    // Fade the corona out as we approach / enter the atmosphere.
-    const p = THREE.MathUtils.clamp(sceneState.current, 0, 1);
-    const dive = THREE.MathUtils.clamp(sceneState.diveCurrent, 0, 1);
-    mat.uniforms.uIntensity.value = (1.35 - p * 0.5) * (1 - dive);
+  const geo = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
+
+  useFrame((state) => {
+    if (!mesh.current) return;
+    mesh.current.quaternion.copy(state.camera.quaternion); // billboard
+    const p = clamp01(sceneState.current);
+    // Big glow when far (hero), softening as we arrive inside the atmosphere.
+    const s = 13 - p * 3;
+    mesh.current.scale.set(s, s, s);
+    mat.uniforms.uIntensity.value = 0.95 - p * 0.45;
   });
-  return <mesh scale={1.035} material={mat} geometry={geo} />;
+
+  return <mesh ref={mesh} geometry={geo} material={mat} renderOrder={-1} position={[0, 0, -0.6]} />;
 }
 
 // ---------------------------------------------------------------------------
-// VOLUMETRIC ATMOSPHERE — drei Clouds that thicken as we enter (dive).
+// VOLUMETRIC ATMOSPHERE — clouds that fade in through the final third.
 // ---------------------------------------------------------------------------
 function Atmosphere() {
   const g = useRef();
   useFrame((state, delta) => {
-    const dive = THREE.MathUtils.clamp(sceneState.diveCurrent, 0, 1);
     if (!g.current) return;
-    g.current.visible = dive > 0.02;
+    const p = clamp01(sceneState.current);
+    const amt = clamp01((p - 0.5) / 0.5); // 0 until halfway, then ramps in
+    g.current.visible = amt > 0.02;
     if (!g.current.visible) return;
-    g.current.rotation.y += delta * 0.03;
-    // Cloud opacity lives on the instanced meshes' shared material.
+    g.current.rotation.y += delta * 0.04;
     g.current.traverse((o) => {
-      if (o.material && 'opacity' in o.material) o.material.opacity = dive * 0.9;
+      if (o.material && 'opacity' in o.material) o.material.opacity = amt;
     });
   });
   return (
     <group ref={g} visible={false}>
-      <Clouds limit={220}>
-        <Cloud seed={1} segments={24} bounds={[9, 3, 9]} volume={7} color="#ffe9d3" fade={24} speed={0.16} />
-        <Cloud seed={4} segments={20} bounds={[8, 2.5, 8]} volume={6} color="#e7ecff" fade={22} speed={0.2} position={[2, -1, -2]} />
-        <Cloud seed={7} segments={16} bounds={[7, 2, 7]} volume={5} color="#ffffff" fade={20} speed={0.24} position={[-2, 1.5, 1]} />
+      <Clouds limit={260}>
+        <Cloud seed={1} segments={30} bounds={[7, 2.4, 7]} volume={7} color="#ffffff" fade={16} speed={0.18} position={[0, 0.5, 2]} />
+        <Cloud seed={4} segments={26} bounds={[6.5, 2, 6.5]} volume={6} color="#ffeede" fade={15} speed={0.22} position={[2.5, -1, -1]} />
+        <Cloud seed={7} segments={22} bounds={[6, 1.8, 6]} volume={5} color="#eef2ff" fade={14} speed={0.26} position={[-2.5, 1.4, 1.5]} />
       </Clouds>
     </group>
   );
 }
 
 // ---------------------------------------------------------------------------
-// ORBIT RIG — storyscroll dolly (far -> atmosphere) + counter-rotating light.
+// CAMERA RIG — MONOTONIC approach: sphere starts small (far) and grows all the
+// way to the footer (near / inside). One direction, never big->small->big.
 // ---------------------------------------------------------------------------
-const CAM_RX = 13.5;
-const CAM_RZ = 10.0;
-const CAM_HEIGHT = 0.6;
-const FAR = 2.25;   // hero distance multiplier (sphere far away)
-const NEAR = 1.0;   // by the end (before the dive)
+const R_FAR = 30;    // hero: sphere small in the distance
+const R_NEAR = 6.2;  // footer: sphere fills the frame (inside the atmosphere)
+const CAM_HEIGHT = 0.35;
+const ANGLE_BASE = THREE.MathUtils.degToRad(200);
+const ANGLE_SWEEP = THREE.MathUtils.degToRad(90);
+const LIGHT_BASE = THREE.MathUtils.degToRad(70);
 
-const LIGHT_BASE = THREE.MathUtils.degToRad(75);
-const CAM_BASE = THREE.MathUtils.degToRad(75 + 110);
-const CAM_SWEEP = THREE.MathUtils.degToRad(70);
-const LIGHT_SWEEP = THREE.MathUtils.degToRad(35);
-const LIGHT_RADIUS = 12;
-const LIGHT_HEIGHT = 3.2;
-
-function OrbitRig({ lightRef, uniforms }) {
+function CameraRig({ lightRef }) {
   const lookAt = useRef(new THREE.Vector3(0, 0, 0));
-  const camPos = useRef(new THREE.Vector3());
-  const lightPos = useRef(new THREE.Vector3());
+  const pos = useRef(new THREE.Vector3());
 
   useFrame((state, delta) => {
-    const damp = 1 - Math.pow(0.04, delta);
+    const damp = 1 - Math.pow(0.045, delta);
     sceneState.current += (sceneState.target - sceneState.current) * damp;
-    sceneState.diveCurrent += (sceneState.dive - sceneState.diveCurrent) * (1 - Math.pow(0.07, delta));
-    const p = THREE.MathUtils.clamp(sceneState.current, 0, 1);
-    const dive = THREE.MathUtils.clamp(sceneState.diveCurrent, 0, 1);
+    const p = clamp01(sceneState.current);
+    const e = smooth(p);
 
-    // Storyscroll distance: start far, approach, then dive inside.
-    const dist = THREE.MathUtils.lerp(FAR, NEAR, smooth(p)) * (1 - dive * 0.62);
-
-    const camA = CAM_BASE - p * CAM_SWEEP;
-    camPos.current.set(
-      Math.sin(camA) * CAM_RX * dist,
-      (CAM_HEIGHT + Math.sin(p * Math.PI) * 0.8) * dist,
-      Math.cos(camA) * CAM_RZ * dist
-    );
-    state.camera.position.copy(camPos.current);
+    const radius = THREE.MathUtils.lerp(R_FAR, R_NEAR, e);
+    const a = ANGLE_BASE + e * ANGLE_SWEEP;
+    pos.current.set(Math.sin(a) * radius, CAM_HEIGHT + e * 0.6, Math.cos(a) * radius);
+    state.camera.position.copy(pos.current);
     state.camera.lookAt(lookAt.current);
 
-    const lightA = LIGHT_BASE + p * LIGHT_SWEEP;
-    lightPos.current.set(Math.sin(lightA) * LIGHT_RADIUS, LIGHT_HEIGHT, Math.cos(lightA) * LIGHT_RADIUS);
-    if (lightRef.current) lightRef.current.position.copy(lightPos.current);
-    uniforms.uLightDir.value.copy(lightPos.current).normalize();
+    // Light drifts a little for a living gradient (kept mostly overhead-left).
+    if (lightRef.current) {
+      const la = LIGHT_BASE - e * 0.5;
+      lightRef.current.position.set(Math.sin(la) * 9, 6.5, Math.cos(la) * 9);
+    }
   });
-
   return null;
 }
 
-function EclipseScene() {
-  const { material, uniforms } = useEclipseMaterial();
+function Scene() {
+  const material = useSphereMaterial();
   const geometry = useMemo(() => new THREE.SphereGeometry(3.3, 160, 160), []);
   const lightRef = useRef();
 
   return (
     <>
+      <color attach="background" args={['#eef0f2']} />
+
+      <GlowSprite />
       <mesh geometry={geometry} material={material} />
-      <GlowShell uniforms={uniforms} />
       <Atmosphere />
 
-      <ambientLight intensity={0.92} />
-      <directionalLight ref={lightRef} intensity={2.6} color="#fff0d8" />
-      <directionalLight position={[-6, 2, -4]} intensity={0.22} color="#eef2ff" />
+      {/* Photoreal white studio lighting: soft bright key from top-left,
+          gentle fills, cool rim — smooth top->bottom gradient. */}
+      <ambientLight intensity={0.55} />
+      <directionalLight ref={lightRef} intensity={2.2} color="#fff6ec" />
+      <directionalLight position={[-7, 3, 4]} intensity={0.5} color="#eaf0ff" />
 
-      <Environment resolution={256} background={false} environmentIntensity={0.4}>
-        <Lightformer form="rect" intensity={2.4} color="#fff3e6" position={[8, 2, 3]} scale={[6, 10, 1]} rotation-y={-Math.PI / 2} />
-        <Lightformer form="circle" intensity={0.5} color="#ffffff" position={[-6, 3, -4]} scale={14} />
+      <Environment resolution={512} background={false} environmentIntensity={0.85}>
+        <Lightformer form="rect" intensity={3.5} color="#ffffff" position={[0, 6, 2]} scale={[10, 6, 1]} rotation-x={Math.PI / 2.2} />
+        <Lightformer form="rect" intensity={2} color="#fff3e6" position={[7, 2, 3]} scale={[5, 8, 1]} rotation-y={-Math.PI / 2} />
+        <Lightformer form="circle" intensity={0.7} color="#eaf0ff" position={[-6, 0, -4]} scale={12} />
       </Environment>
 
-      <OrbitRig lightRef={lightRef} uniforms={uniforms} />
+      <CameraRig lightRef={lightRef} />
     </>
   );
 }
 
 const INITIAL_CAMERA = {
-  position: [Math.sin(CAM_BASE) * CAM_RX * FAR, CAM_HEIGHT * FAR, Math.cos(CAM_BASE) * CAM_RZ * FAR],
-  fov: 40,
+  position: [Math.sin(ANGLE_BASE) * R_FAR, CAM_HEIGHT, Math.cos(ANGLE_BASE) * R_FAR],
+  fov: 38,
 };
 
 function ImmersiveScene() {
@@ -202,13 +182,12 @@ function ImmersiveScene() {
     <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
       <Canvas
         camera={INITIAL_CAMERA}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 1.6]}
-        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
         style={{ width: '100%', height: '100%' }}
       >
         <Suspense fallback={null}>
-          <EclipseScene />
+          <Scene />
         </Suspense>
       </Canvas>
     </div>

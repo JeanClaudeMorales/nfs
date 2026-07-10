@@ -103,21 +103,22 @@ export default function LiquidFooter() {
 
   // High chromatic aberration + transparency = realistic refractive glass.
   useLiquidGlass(rootRef, () => [glassRef.current], ready, {
-    blurAmount: 0.1,
-    refraction: 0.92,
-    chromAberration: 0.22,
-    edgeHighlight: 0.7,
-    specular: 0.9,
+    blurAmount: 0.08,
+    refraction: 1.0,
+    chromAberration: 0.32,
+    edgeHighlight: 1.0,
+    specular: 1.0,
     fresnel: 1.0,
-    cornerRadius: 28,
-    zRadius: 26,
-    saturation: 0.35,
-    tintStrength: 0.06,
-    brightness: 0.02,
-    opacity: 0.85,
-    shadowOpacity: 0.35,
-    shadowSpread: 30,
-    shadowOffsetY: 12,
+    distortion: 0.06,
+    cornerRadius: 30,
+    zRadius: 34,
+    saturation: 0.4,
+    tintStrength: 0.05,
+    brightness: 0.03,
+    opacity: 0.8,
+    shadowOpacity: 0.32,
+    shadowSpread: 34,
+    shadowOffsetY: 14,
   });
 
   const col = (heading, links) => (
