@@ -106,15 +106,15 @@ function Atmosphere() {
 // CAMERA RIG — MONOTONIC approach: sphere starts small (far) and grows all the
 // way to the footer (near / inside). One direction, never big->small->big.
 // ---------------------------------------------------------------------------
-const R_FAR = 30;    // hero: sphere small in the distance
-const R_NEAR = 6.2;  // footer: sphere fills the frame (inside the atmosphere)
-const CAM_HEIGHT = 0.35;
-const ANGLE_BASE = THREE.MathUtils.degToRad(200);
-const ANGLE_SWEEP = THREE.MathUtils.degToRad(90);
+const R_FAR = 22;    // hero: sphere sizeable but with room ahead
+const R_NEAR = 5.4;  // footer: sphere fills the frame (inside the atmosphere)
+const CAM_HEIGHT = 0.3;
+const ANGLE_BASE = THREE.MathUtils.degToRad(205);
+const ANGLE_SWEEP = THREE.MathUtils.degToRad(150); // big cinematic orbit
 const LIGHT_BASE = THREE.MathUtils.degToRad(70);
 
 function CameraRig({ lightRef }) {
-  const lookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const target = useRef(new THREE.Vector3(0, 0, 0));
   const pos = useRef(new THREE.Vector3());
 
   useFrame((state, delta) => {
@@ -122,14 +122,26 @@ function CameraRig({ lightRef }) {
     sceneState.current += (sceneState.target - sceneState.current) * damp;
     const p = clamp01(sceneState.current);
     const e = smooth(p);
+    const t = state.clock.elapsedTime;
 
+    // FPV-drone approach: orbit + rise/fall arc + slow idle drift so the shot
+    // is never static, all while closing the distance to the sphere.
     const radius = THREE.MathUtils.lerp(R_FAR, R_NEAR, e);
-    const a = ANGLE_BASE + e * ANGLE_SWEEP;
-    pos.current.set(Math.sin(a) * radius, CAM_HEIGHT + e * 0.6, Math.cos(a) * radius);
+    const a = ANGLE_BASE + e * ANGLE_SWEEP + Math.sin(t * 0.14) * 0.06;
+    const h = CAM_HEIGHT + Math.sin(e * Math.PI) * 2.6 + Math.sin(t * 0.22) * 0.35;
+    pos.current.set(Math.sin(a) * radius, h, Math.cos(a) * radius);
     state.camera.position.copy(pos.current);
-    state.camera.lookAt(lookAt.current);
 
-    // Light drifts a little for a living gradient (kept mostly overhead-left).
+    // Off-centre, drifting framing (the sphere isn't glued to the middle).
+    target.current.set(
+      THREE.MathUtils.lerp(-1.8, 0, e) + Math.sin(t * 0.13) * 0.45,
+      Math.cos(t * 0.17) * 0.3,
+      0
+    );
+    state.camera.lookAt(target.current);
+    // Subtle banking roll for the FPV feel.
+    state.camera.rotateZ(Math.sin(t * 0.25) * 0.03 + (e - 0.5) * 0.05);
+
     if (lightRef.current) {
       const la = LIGHT_BASE - e * 0.5;
       lightRef.current.position.set(Math.sin(la) * 9, 6.5, Math.cos(la) * 9);

@@ -54,6 +54,28 @@ function useGlowBackdrop(canvasRef, rootRef) {
         ctx.arc(cx, cy, rad, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      // Crisp geometry so the glass has real edges to refract (chromatic
+      // aberration + distortion only show up on high-contrast content).
+      ctx.save();
+      ctx.strokeStyle = 'rgba(17,18,20,0.10)';
+      ctx.lineWidth = 1;
+      const step = 46 * dpr;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+      for (let y = 0; y <= h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+      ctx.stroke();
+      // drifting concentric rings
+      const rx = (0.3 + Math.sin(t * 0.00004) * 0.06) * w;
+      const ry = 0.5 * h;
+      ctx.strokeStyle = 'rgba(17,18,20,0.14)';
+      for (let i = 1; i <= 7; i++) {
+        ctx.beginPath();
+        ctx.arc(rx, ry, i * 34 * dpr, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
       raf = requestAnimationFrame(draw);
     };
 
@@ -109,13 +131,13 @@ export default function LiquidFooter() {
     edgeHighlight: 1.0,
     specular: 1.0,
     fresnel: 1.0,
-    distortion: 0.06,
-    cornerRadius: 30,
-    zRadius: 34,
-    saturation: 0.4,
+    distortion: 0.12,
+    cornerRadius: 32,
+    zRadius: 40,
+    saturation: 0.45,
     tintStrength: 0.05,
     brightness: 0.03,
-    opacity: 0.8,
+    opacity: 0.68,
     shadowOpacity: 0.32,
     shadowSpread: 34,
     shadowOffsetY: 14,

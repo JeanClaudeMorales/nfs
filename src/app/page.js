@@ -69,51 +69,58 @@ const IND = [
   ['portfolio', 'nav.portfolio'],
 ];
 
-// Orbital page indicator: dots on an arc around the sphere, with two
-// counter-rotating "gear" rings marking the active section.
+// Quadratic bezier so the rail is a true curve. Sample points for the dots.
+const P0 = [15, 20], P1 = [92, 340], P2 = [15, 660];
+const bez = (u) => {
+  const v = 1 - u;
+  return {
+    x: v * v * P0[0] + 2 * v * u * P1[0] + u * u * P2[0],
+    y: v * v * P0[1] + 2 * v * u * P1[1] + u * u * P2[1],
+  };
+};
+
+// Orbital page indicator: dots on a curved rail, two counter-rotating gear
+// rings on the active section. Hides once the footer is in view.
 function OrbitIndicator() {
   const { t } = useI18n();
   const [active, setActive] = useState(0);
+  const [hidden, setHidden] = useState(false);
+
   useEffect(() => {
     const ids = IND.map(([id]) => id);
     const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            const i = ids.indexOf(e.target.id);
-            if (i >= 0) setActive(i);
-          }
-        });
-      },
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { const i = ids.indexOf(e.target.id); if (i >= 0) setActive(i); }
+      }),
       { rootMargin: '-45% 0px -45% 0px' }
     );
     ids.forEach((id) => { const el = document.getElementById(id); if (el) obs.observe(el); });
-    return () => obs.disconnect();
+
+    const footer = document.querySelector('.lg-footer');
+    let fObs;
+    if (footer) {
+      fObs = new IntersectionObserver(([e]) => setHidden(e.isIntersecting), { rootMargin: '0px 0px -10% 0px' });
+      fObs.observe(footer);
+    }
+    return () => { obs.disconnect(); fObs?.disconnect(); };
   }, []);
 
   const n = IND.length;
-  const pts = IND.map((_, i) => {
-    const f = i / (n - 1);
-    return { x: 20 + Math.sin(f * Math.PI) * 42, y: 40 + f * 620 };
-  });
-  const go = (id) => () => {
-    const el = document.getElementById(id);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  const pts = IND.map((_, i) => bez(i / (n - 1)));
+  const go = (id) => () => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const a = pts[active];
 
   return (
-    <div className="orbit-ind" aria-hidden={false}>
-      <svg viewBox="0 0 90 700" width="90" height="700">
-        <path d={`M ${pts[0].x} ${pts[0].y} ${pts.map((p) => `L ${p.x} ${p.y}`).join(' ')}`} className="orbit-path" />
+    <div className={`orbit-ind ${hidden ? 'is-hidden' : ''}`}>
+      <svg viewBox="0 0 110 680" width="110" height="680">
+        <path d={`M ${P0} Q ${P1} ${P2}`} className="orbit-path" />
         {pts.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={i === active ? 4.5 : 2.6} className={`orbit-dot ${i === active ? 'on' : ''}`} onClick={go(IND[i][0])} style={{ cursor: 'pointer' }} />
+          <circle key={i} cx={p.x} cy={p.y} r={i === active ? 4.5 : 2.4} className={`orbit-dot ${i === active ? 'on' : ''}`} onClick={go(IND[i][0])} />
         ))}
       </svg>
-      {/* counter-rotating gear rings at the active dot */}
       <div className="gear gear-a" style={{ top: a.y, left: a.x }} />
       <div className="gear gear-b" style={{ top: a.y, left: a.x }} />
-      <span className="orbit-label" style={{ top: a.y }}>{t(IND[active][1])}</span>
+      <span className="orbit-label" style={{ top: a.y, left: a.x }}>{t(IND[active][1])}</span>
     </div>
   );
 }
