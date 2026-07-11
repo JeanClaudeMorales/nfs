@@ -177,9 +177,14 @@ export default function Home() {
     let raf = 0;
     const update = () => {
       raf = 0;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const vh = window.innerHeight;
+      const max = document.documentElement.scrollHeight - vh;
       // Monotonic 0..1 across the whole page: the sphere grows the whole way.
       sceneState.target = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      // Atmosphere ramps as the portfolio section enters view (decoupled from
+      // global scroll so earlier sections stay clean).
+      const r = portfolioRef.current?.getBoundingClientRect();
+      if (r) sceneState.atmo = Math.min(1, Math.max(0, (0.35 * vh - r.top) / (0.6 * vh)));
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
     update();

@@ -482,10 +482,19 @@ body {
   z-index: 5;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 12rem 2rem 14rem;
+  padding: 0 2rem 14rem;
   min-height: 130vh;
 }
-.portfolio-head { text-align: center; margin-bottom: 4rem; }
+/* full-viewport atmosphere moment before the project cards */
+.portfolio-head {
+  text-align: center;
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4rem;
+}
 .portfolio-title {
   font-size: clamp(2.6rem, 6vw, 5rem);
   font-weight: 580; letter-spacing: -0.035em; line-height: 1;

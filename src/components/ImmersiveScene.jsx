@@ -86,22 +86,22 @@ function Atmosphere() {
   const opRef = useRef(0);
 
   useFrame((state, delta) => {
-    const p = clamp01(sceneState.current);
-    const target = clamp01((p - 0.32) / 0.5); // fly INTO the clouds on approach
-    if (Math.abs(target - opRef.current) > 0.03) { opRef.current = target; setOp(target); }
+    const target = clamp01(sceneState.atmoCurrent);
+    if (Math.abs(target - opRef.current) > 0.025) { opRef.current = target; setOp(target); }
     if (g.current) g.current.rotation.y += delta * 0.05;
   });
 
   if (op <= 0.01) return null;
-  const o = op * 0.95;
+  const o = op * 0.98;
   return (
     <group ref={g}>
-      {/* Cool-grey, centred and large so puffs surround the sphere in view. */}
+      {/* White puffs — the scene background lerps to sky-blue as we enter, so
+          white clouds read clearly (like flying into an atmosphere). */}
       <Clouds limit={400}>
-        <Cloud seed={1} segments={40} bounds={[12, 3.5, 12]} volume={11} color="#b9c3d6" fade={9} speed={0.2} opacity={o} position={[0, 0.3, 2]} />
-        <Cloud seed={4} segments={34} bounds={[10, 3, 10]} volume={9} color="#ccd3e0" fade={9} speed={0.24} opacity={o * 0.9} position={[4, -1.6, -1]} />
-        <Cloud seed={7} segments={30} bounds={[10, 2.6, 10]} volume={8} color="#aab6cc" fade={8} speed={0.28} opacity={o * 0.9} position={[-4, 1.8, 2]} />
-        <Cloud seed={11} segments={26} bounds={[9, 2.4, 9]} volume={7} color="#d7dce8" fade={10} speed={0.32} opacity={o * 0.8} position={[0, -2.2, -2]} />
+        <Cloud seed={1} segments={40} bounds={[12, 3.5, 12]} volume={11} color="#ffffff" fade={8} speed={0.2} opacity={o} position={[0, 0.3, 2]} />
+        <Cloud seed={4} segments={34} bounds={[10, 3, 10]} volume={9} color="#f2f6ff" fade={8} speed={0.24} opacity={o * 0.95} position={[4, -1.6, -1]} />
+        <Cloud seed={7} segments={30} bounds={[10, 2.6, 10]} volume={8} color="#ffffff" fade={7} speed={0.28} opacity={o * 0.95} position={[-4, 1.8, 2]} />
+        <Cloud seed={11} segments={26} bounds={[9, 2.4, 9]} volume={7} color="#eaf1ff" fade={9} speed={0.32} opacity={o * 0.85} position={[0, -2.2, -2]} />
       </Clouds>
     </group>
   );
@@ -118,6 +118,9 @@ const ANGLE_SWEEP = THREE.MathUtils.degToRad(255); // long re-entry spiral
 const H_START = 7.2; // starts high, looking down
 const H_END = 0.2;   // descends to near the equator
 const LIGHT_BASE = THREE.MathUtils.degToRad(70);
+const BG_LIGHT = new THREE.Color('#eef0f2');
+const BG_SKY = new THREE.Color('#a9bbd6'); // soft atmosphere blue at the end
+const _bgTmp = new THREE.Color();
 
 function CameraRig({ lightRef }) {
   const target = useRef(new THREE.Vector3(0, 0, 0));
@@ -126,6 +129,7 @@ function CameraRig({ lightRef }) {
   useFrame((state, delta) => {
     const damp = 1 - Math.pow(0.045, delta);
     sceneState.current += (sceneState.target - sceneState.current) * damp;
+    sceneState.atmoCurrent += (sceneState.atmo - sceneState.atmoCurrent) * (1 - Math.pow(0.06, delta));
     const p = clamp01(sceneState.current);
     const e = smooth(p);
     const t = state.clock.elapsedTime;
@@ -149,6 +153,13 @@ function CameraRig({ lightRef }) {
     state.camera.lookAt(target.current);
     // Banking roll — stronger through the turn for the re-entry feel.
     state.camera.rotateZ(Math.sin(t * 0.25) * 0.03 + Math.sin(e * Math.PI) * 0.08);
+
+    // Entering the atmosphere: fade the sky from near-white to soft blue so
+    // the white clouds read against it.
+    if (state.scene.background) {
+      const sky = clamp01(sceneState.atmoCurrent);
+      state.scene.background.copy(_bgTmp.copy(BG_LIGHT).lerp(BG_SKY, sky));
+    }
 
     if (lightRef.current) {
       const la = LIGHT_BASE - e * 0.5;
