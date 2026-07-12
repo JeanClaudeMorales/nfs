@@ -172,6 +172,7 @@ function Accordion({ items, lang }) {
 export default function Home() {
   const { t, lang } = useI18n();
   const portfolioRef = useRef(null);
+  const atmoRef = useRef(null);
 
   useEffect(() => {
     let raf = 0;
@@ -181,10 +182,14 @@ export default function Home() {
       const max = document.documentElement.scrollHeight - vh;
       // Monotonic 0..1 across the whole page: the sphere grows the whole way.
       sceneState.target = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-      // Atmosphere ramps as the portfolio section enters view (decoupled from
-      // global scroll so earlier sections stay clean).
+      // Atmosphere (DOM sky + clouds behind the sphere) fades in as the
+      // portfolio enters view.
       const r = portfolioRef.current?.getBoundingClientRect();
-      if (r) sceneState.atmo = Math.min(1, Math.max(0, (0.35 * vh - r.top) / (0.6 * vh)));
+      if (r) {
+        const atmo = Math.min(1, Math.max(0, (0.4 * vh - r.top) / (0.55 * vh)));
+        sceneState.atmo = atmo;
+        if (atmoRef.current) atmoRef.current.style.opacity = atmo;
+      }
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
     update();
@@ -195,6 +200,16 @@ export default function Home() {
 
   return (
     <>
+      {/* DOM atmosphere — sky + drifting clouds behind the 3D sphere; fades in
+          for the portfolio "entering the atmosphere" moment. */}
+      <div ref={atmoRef} className="atmosphere" aria-hidden>
+        <span className="cloud cloud-1" />
+        <span className="cloud cloud-2" />
+        <span className="cloud cloud-3" />
+        <span className="cloud cloud-4" />
+        <span className="cloud cloud-5" />
+      </div>
+
       <ImmersiveScene />
       <Nav />
 
