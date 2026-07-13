@@ -64,9 +64,9 @@ function GlowSprite() {
     if (!mesh.current) return;
     mesh.current.quaternion.copy(state.camera.quaternion);
     const p = clamp01(sceneState.current);
-    const sc = 13 - p * 3;
+    const sc = 13 - p * 5;
     mesh.current.scale.set(sc, sc, sc);
-    mat.uniforms.uIntensity.value = 0.95 - p * 0.4;
+    mat.uniforms.uIntensity.value = (0.95 - p * 0.85) * (1 - p * 0.4); // fade out on arrival so the sphere reads clean
   });
 
   return <mesh ref={mesh} geometry={geo} material={mat} renderOrder={-1} position={[0, 0, -0.6]} />;
@@ -77,7 +77,7 @@ function GlowSprite() {
 // feel): starts high & far, sweeps down and around as it closes on the sphere.
 // ---------------------------------------------------------------------------
 const R_FAR = 22;
-const R_NEAR = 8.5; // end: close enough that the sphere spans the footer width
+const R_NEAR = 7; // end: large planet presence spanning the width behind the footer
 const ANGLE_BASE = THREE.MathUtils.degToRad(205);
 const ANGLE_SWEEP = THREE.MathUtils.degToRad(255);
 const H_START = 7.2;
@@ -104,10 +104,12 @@ function CameraRig({ lightRef }) {
     state.camera.position.copy(pos.current);
 
     // lookAt rises at the end -> the sphere sinks low in frame, its huge arc
-    // spanning the full width like a planet horizon behind the footer.
+    // spanning the full width like a planet horizon behind the footer. Idle
+    // drift fades out on arrival so it settles centred.
+    const drift = 1 - e * 0.75;
     target.current.set(
-      THREE.MathUtils.lerp(-1.8, 0, e) + Math.sin(t * 0.13) * 0.45,
-      THREE.MathUtils.lerp(1.4, 2.6, e) + Math.cos(t * 0.17) * 0.3,
+      THREE.MathUtils.lerp(-1.8, 0, e) + Math.sin(t * 0.13) * 0.45 * drift,
+      THREE.MathUtils.lerp(1.4, 3.2, e) + Math.cos(t * 0.17) * 0.3 * drift,
       0
     );
     state.camera.lookAt(target.current);
