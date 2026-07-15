@@ -52,7 +52,7 @@ export default function LiquidFooter() {
         <div className="footer-top">
           <div className="footer-brand">
             <div className="footer-logo">
-              <img src="/logo.png" alt="Next Frontier Systems" className="footer-logo-mark" width="44" height="24" />
+              <img src="/logo.png" alt="Next Frontier Systems" className="footer-logo-mark" />
               <span>Next Frontier Systems</span>
             </div>
             <p className="footer-tagline">{t('footer.tagline')}</p>
