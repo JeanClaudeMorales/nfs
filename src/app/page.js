@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ImmersiveScene from '@/components/ImmersiveScene';
 import LiquidFooter from '@/components/LiquidFooter';
 import Icon from '@/components/icons';
@@ -175,27 +177,52 @@ export default function Home() {
   const atmoRef = useRef(null);
 
   useEffect(() => {
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const vh = window.innerHeight;
-      const max = document.documentElement.scrollHeight - vh;
-      // Monotonic 0..1 across the whole page: the sphere grows the whole way.
-      sceneState.target = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+    gsap.registerPlugin(ScrollTrigger);
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const ctx = gsap.context(() => {
+      // Sphere: GSAP feeds whole-page scroll progress (monotonic 0..1) into the
+      // shared scene state; the r3f CameraRig damps toward it every frame, so
+      // the planet reacts from the very first scroll in the hero.
+      ScrollTrigger.create({
+        start: 0,
+        end: 'max',
+        onUpdate: (self) => { sceneState.target = self.progress; },
+      });
+
       // Atmosphere (DOM sky + clouds behind the sphere) fades in as the
-      // portfolio enters view.
-      const r = portfolioRef.current?.getBoundingClientRect();
-      if (r) {
-        const atmo = Math.min(1, Math.max(0, (0.4 * vh - r.top) / (0.55 * vh)));
-        sceneState.atmo = atmo;
-        if (atmoRef.current) atmoRef.current.style.opacity = atmo;
+      // portfolio "entering the atmosphere" moment approaches.
+      if (portfolioRef.current) {
+        ScrollTrigger.create({
+          trigger: portfolioRef.current,
+          start: 'top 65%',
+          end: 'top top',
+          onUpdate: (self) => {
+            sceneState.atmo = self.progress;
+            if (atmoRef.current) atmoRef.current.style.opacity = self.progress;
+          },
+        });
       }
-    };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(raf); };
+
+      // Hero parallax: the headline block drifts up and dims on the first
+      // scroll, so the page feels alive immediately (pairs with the sphere).
+      if (!prefersReduced) {
+        gsap.to('.hero-inner', {
+          yPercent: -14,
+          opacity: 0.2,
+          ease: 'none',
+          scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.4 },
+        });
+      }
+    });
+
+    // Web fonts can shift layout after hydration; recompute trigger positions
+    // once they're ready so start/end offsets stay accurate.
+    const refresh = () => ScrollTrigger.refresh();
+    if (document.fonts?.ready) document.fonts.ready.then(refresh).catch(() => {});
+    const tid = setTimeout(refresh, 400);
+
+    return () => { clearTimeout(tid); ctx.revert(); };
   }, []);
 
   return (
@@ -217,26 +244,28 @@ export default function Home() {
         <OrbitIndicator />
         {/* HERO */}
         <section id="hero" className="hero">
-          <Reveal as="p" className="eyebrow">{t('hero.eyebrow')}</Reveal>
-          <Reveal as="h1" className="hero-title" delay={0.05}>
-            {(() => {
-              const accent = lang === 'es' ? 'próxima' : 'next';
-              const [pre, post] = t('hero.titleA').split(accent);
-              return (
-                <>
-                  <span className="t-sans">{pre}</span>
-                  <span className="t-serif">{accent}</span>
-                  <span className="t-sans">{post} </span>
-                  <span className="t-serif">{t('hero.titleB')}</span>
-                </>
-              );
-            })()}
-          </Reveal>
-          <Reveal className="hero-sub" delay={0.15}>{t('hero.sub')}</Reveal>
-          <Reveal className="hero-actions" delay={0.25}>
-            <a href="#contact" className="btn-primary">{t('hero.cta')} <span className="arr">↗</span></a>
-            <a href="#divisions" className="btn-outline">{t('hero.secondary')}</a>
-          </Reveal>
+          <div className="hero-inner">
+            <Reveal as="p" className="eyebrow">{t('hero.eyebrow')}</Reveal>
+            <Reveal as="h1" className="hero-title" delay={0.05}>
+              {(() => {
+                const accent = lang === 'es' ? 'próxima' : 'next';
+                const [pre, post] = t('hero.titleA').split(accent);
+                return (
+                  <>
+                    <span className="t-sans">{pre}</span>
+                    <span className="t-serif">{accent}</span>
+                    <span className="t-sans">{post} </span>
+                    <span className="t-serif">{t('hero.titleB')}</span>
+                  </>
+                );
+              })()}
+            </Reveal>
+            <Reveal className="hero-sub" delay={0.15}>{t('hero.sub')}</Reveal>
+            <Reveal className="hero-actions" delay={0.25}>
+              <a href="#contact" className="btn-primary">{t('hero.cta')} <span className="arr">↗</span></a>
+              <a href="#divisions" className="btn-outline">{t('hero.secondary')}</a>
+            </Reveal>
+          </div>
           <div className="scroll-hint"><span /></div>
         </section>
 

@@ -232,6 +232,13 @@ body {
   justify-content: center;
   align-items: flex-start;
 }
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  will-change: transform, opacity;
+}
 .hero-title {
   font-size: clamp(2.6rem, 6.4vw, 5.4rem);
   line-height: 0.98;
@@ -562,29 +569,33 @@ body {
 .project .card-link { color: var(--ink); }
 
 /* ------------------------------------------------------------------ liquid footer */
+/* One full-bleed frosted-glass sheet spanning the viewport, rising from the
+   bottom. A single CSS backdrop-filter surface (same technique as the navbar)
+   so it reads as ONE solid piece of glass edge-to-edge — the blur samples the
+   fixed 3D sphere behind it, so the planet glows softly through the glass. */
 .lg-footer {
   position: relative;
   z-index: 10;
-  margin-top: 3rem;
-  padding: 2.75rem;
-  min-height: 500px;
+  margin-top: 5rem;
+  padding: 3.6rem 0 2.6rem;
+  border-radius: 30px 30px 0 0;
+  background: rgba(236, 238, 242, 0.5);
+  -webkit-backdrop-filter: blur(28px) saturate(168%);
+  backdrop-filter: blur(28px) saturate(168%);
+  border-top: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.5) inset, 0 -26px 60px -34px rgba(30, 20, 10, 0.16);
   overflow: hidden;
-  background: #eaecf1;
 }
-.lg-footer-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.lg-footer-glass {
+.lg-footer-inner {
   position: relative;
-  /* Creates a stacking context so the library's injected z-index:-1 shader
-     canvas stays INSIDE this panel (without this, the aurora backdrop canvas
-     paints over it and the glass is invisible). */
   z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
   color: var(--ink);
-  padding: 3.2rem 3rem 2rem;
-  min-height: 440px;
-  border-radius: 34px;
 }
 .us-flag { border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); vertical-align: -3px; }
-.lg-footer-glass .footer-top {
+.lg-footer-inner .footer-top {
   display: grid;
   grid-template-columns: 1.3fr 2fr 1.2fr;
   gap: 2.5rem;
@@ -595,11 +606,11 @@ body {
   gap: 1.5rem;
 }
 @media (max-width: 900px) {
-  .lg-footer-glass .footer-top { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .lg-footer-inner .footer-top { grid-template-columns: 1fr 1fr; gap: 2rem; }
   .footer-cols { grid-column: 1 / -1; }
 }
 @media (max-width: 560px) {
-  .lg-footer-glass .footer-top { grid-template-columns: 1fr; }
+  .lg-footer-inner .footer-top { grid-template-columns: 1fr; }
   .footer-cols { grid-template-columns: 1fr 1fr; }
 }
 

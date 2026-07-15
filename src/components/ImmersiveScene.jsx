@@ -6,7 +6,11 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import sceneState from './sceneState';
 
-const smooth = (s) => s * s * s * (s * (s * 6 - 15) + 10);
+// Blend of linear + smoothstep: keeps a non-zero slope at s=0 so the sphere
+// reacts to the very first scroll in the hero (pure smootherstep was flat near
+// 0, which made motion look like it only began at the second section), while
+// still easing through the middle and retaining slope at s=1 for the arrival.
+const smooth = (s) => 0.42 * s + 0.58 * (s * s * (3 - 2 * s));
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 // ---------------------------------------------------------------------------
@@ -15,7 +19,11 @@ const clamp01 = (v) => Math.min(1, Math.max(0, v));
 // ---------------------------------------------------------------------------
 function useSphereMaterial() {
   return useMemo(() => {
-    const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.48, metalness: 0, envMapIntensity: 0.9 });
+    const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.42, metalness: 0, envMapIntensity: 0.78 });
+    // Ordered dithering breaks up the 8-bit colour banding that showed as
+    // concentric contour "rings" across the near-white sphere at large scale
+    // (the "varias capas" artifact when the planet fills the screen).
+    m.dithering = true;
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uRim = { value: new THREE.Color('#ffd9ad') };
       shader.fragmentShader = shader.fragmentShader
@@ -76,7 +84,7 @@ function GlowSprite() {
 // CAMERA RIG — monotonic small->large approach on a DESCENDING SPIRAL (re-entry
 // feel): starts high & far, sweeps down and around as it closes on the sphere.
 // ---------------------------------------------------------------------------
-const R_FAR = 22;
+const R_FAR = 17.5; // closer start => the hero sphere reads a touch larger
 const R_NEAR = 7; // end: large planet presence spanning the width behind the footer
 const ANGLE_BASE = THREE.MathUtils.degToRad(205);
 const ANGLE_SWEEP = THREE.MathUtils.degToRad(255);
@@ -109,7 +117,7 @@ function CameraRig({ lightRef }) {
     const drift = 1 - e * 0.75;
     target.current.set(
       THREE.MathUtils.lerp(-1.8, 0, e) + Math.sin(t * 0.13) * 0.45 * drift,
-      THREE.MathUtils.lerp(1.4, 3.2, e) + Math.cos(t * 0.17) * 0.3 * drift,
+      THREE.MathUtils.lerp(1.4, 2.2, e) + Math.cos(t * 0.17) * 0.3 * drift,
       0
     );
     state.camera.lookAt(target.current);
@@ -125,7 +133,7 @@ function CameraRig({ lightRef }) {
 
 function Scene() {
   const material = useSphereMaterial();
-  const geometry = useMemo(() => new THREE.SphereGeometry(3.3, 160, 160), []);
+  const geometry = useMemo(() => new THREE.SphereGeometry(3.55, 180, 180), []);
   const lightRef = useRef();
 
   return (
@@ -133,11 +141,11 @@ function Scene() {
       <GlowSprite />
       <mesh geometry={geometry} material={material} />
 
-      <ambientLight intensity={0.55} />
-      <directionalLight ref={lightRef} intensity={2.2} color="#fff6ec" />
-      <directionalLight position={[-7, 3, 4]} intensity={0.5} color="#eaf0ff" />
+      <ambientLight intensity={0.42} />
+      <directionalLight ref={lightRef} intensity={2.35} color="#fff6ec" />
+      <directionalLight position={[-7, 3, 4]} intensity={0.42} color="#eaf0ff" />
 
-      <Environment resolution={512} background={false} environmentIntensity={0.85}>
+      <Environment resolution={512} background={false} environmentIntensity={0.72}>
         <Lightformer form="rect" intensity={3.5} color="#ffffff" position={[0, 6, 2]} scale={[10, 6, 1]} rotation-x={Math.PI / 2.2} />
         <Lightformer form="rect" intensity={2} color="#fff3e6" position={[7, 2, 3]} scale={[5, 8, 1]} rotation-y={-Math.PI / 2} />
         <Lightformer form="circle" intensity={0.7} color="#eaf0ff" position={[-6, 0, -4]} scale={12} />

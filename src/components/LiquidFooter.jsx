@@ -1,74 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import useLiquidGlass from './useLiquidGlass';
 import Icon from './icons';
 
-// Animated backdrop: drifting coloured glows on near-black. It's a real
-// <canvas> tagged data-dynamic, so the liquid-glass shader re-samples it live
-// every frame and refracts it with chromatic aberration.
-function useGlowBackdrop(canvasRef, rootRef) {
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const root = rootRef.current;
-    if (!canvas || !root) return;
-    const ctx = canvas.getContext('2d');
-    let raf, t = 0;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    const resize = () => {
-      const r = root.getBoundingClientRect();
-      canvas.width = Math.max(1, Math.round(r.width * dpr));
-      canvas.height = Math.max(1, Math.round(r.height * dpr));
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(root);
-
-    // Light, airy palette so the glass reads like the navbar (light frosted).
-    const orbs = [
-      { c: '#ffd9b3', x: 0.24, y: 0.4, r: 0.55, sx: 0.00007, sy: 0.00005 },
-      { c: '#cfe0ff', x: 0.72, y: 0.62, r: 0.6, sx: -0.00006, sy: 0.00008 },
-      { c: '#ffffff', x: 0.5, y: 0.18, r: 0.45, sx: 0.00005, sy: -0.00004 },
-    ];
-
-    const draw = () => {
-      t += 16;
-      const w = canvas.width, h = canvas.height;
-      // soft light base
-      const base = ctx.createLinearGradient(0, 0, w, h);
-      base.addColorStop(0, '#eef0f4');
-      base.addColorStop(1, '#e6e8ee');
-      ctx.fillStyle = base;
-      ctx.fillRect(0, 0, w, h);
-      for (const o of orbs) {
-        const cx = (o.x + Math.sin(t * o.sx) * 0.12) * w;
-        const cy = (o.y + Math.cos(t * o.sy) * 0.15) * h;
-        const rad = o.r * Math.min(w, h);
-        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-        g.addColorStop(0, o.c + 'e6');
-        g.addColorStop(0.5, o.c + '55');
-        g.addColorStop(1, o.c + '00');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      raf = requestAnimationFrame(draw);
-    };
-
-    // Perf: only animate (and let the glass shader re-render) while the footer
-    // is near the viewport. Off-screen, drop data-dynamic so the shader idles.
-    let running = false;
-    const start = () => { if (!running) { running = true; canvas.setAttribute('data-dynamic', ''); draw(); } };
-    const stop = () => { if (running) { running = false; cancelAnimationFrame(raf); canvas.removeAttribute('data-dynamic'); } };
-    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()), { rootMargin: '200px' });
-    io.observe(root);
-
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); };
-  }, [canvasRef, rootRef]);
-}
+// Footer = one full-bleed frosted-glass sheet spanning the viewport, rising
+// from the bottom. It's a single CSS `backdrop-filter` surface (same technique
+// as the navbar) so it reads as ONE solid piece of glass edge-to-edge — the
+// previous @ybouane WebGL panel was a bevelled floating card whose refracted
+// aurora backdrop read as several stacked layers and left gutters at the sides.
+// The blur samples the fixed 3D sphere behind it, so the planet still glows
+// softly through the glass.
 
 function UsFlag() {
   const sh = 16 / 13; // stripe height
@@ -94,54 +35,21 @@ function UsFlag() {
 export default function LiquidFooter() {
   const { t, lang } = useI18n();
   const L = (en, es) => (lang === 'es' ? es : en);
-  const rootRef = useRef(null);
-  const glassRef = useRef(null);
-  const bgRef = useRef(null);
-  const [ready, setReady] = useState(false);
-
-  useGlowBackdrop(bgRef, rootRef);
-  useEffect(() => setReady(true), []);
-
-  // High chromatic aberration + transparency = realistic refractive glass.
-  // Clean floating-glass slab: bright rim, gentle refraction of the aurora
-  // backdrop, subtle chromatic fringe (not a rainbow), see-through body.
-  useLiquidGlass(rootRef, () => [glassRef.current], ready, {
-    blurAmount: 0.06,
-    refraction: 0.7,
-    chromAberration: 0.1,
-    edgeHighlight: 1.0,
-    specular: 0.85,
-    fresnel: 1.0,
-    distortion: 0.0,
-    cornerRadius: 34,
-    zRadius: 44,
-    saturation: 0.2,
-    tintStrength: 0.03,
-    brightness: 0.06,
-    opacity: 0.5,
-    shadowOpacity: 0.28,
-    shadowSpread: 40,
-    shadowOffsetY: 16,
-  });
 
   const col = (heading, links) => (
     <div>
       <h4 className="footer-col-title">{heading}</h4>
       <ul className="footer-links">
-        {links.map((l) => (
-          <li key={l}><a href="#">{l}</a></li>
+        {links.map(([label, href]) => (
+          <li key={label}><a href={href}>{label}</a></li>
         ))}
       </ul>
     </div>
   );
 
   return (
-    <footer ref={rootRef} className="lg-footer">
-      {/* live refracted backdrop (data-dynamic toggled by IntersectionObserver) */}
-      <canvas ref={bgRef} className="lg-footer-bg" />
-
-      {/* the glass panel */}
-      <div ref={glassRef} className="lg-footer-glass">
+    <footer className="lg-footer">
+      <div className="lg-footer-inner">
         <div className="footer-top">
           <div className="footer-brand">
             <div className="footer-logo">
@@ -157,8 +65,20 @@ export default function LiquidFooter() {
           </div>
 
           <div className="footer-cols">
-            {col(t('footer.company'), [L('About', 'Nosotros'), L('Vision', 'Visión'), L('Laboratories', 'Laboratorios'), L('Careers', 'Carreras'), L('Contact', 'Contacto')])}
-            {col(t('footer.divisions'), [L('Artificial Intelligence', 'Inteligencia Artificial'), L('Telecommunications', 'Telecomunicaciones'), L('Simulation', 'Simulación'), 'Cloud', L('Data Intelligence', 'Inteligencia de Datos')])}
+            {col(t('footer.company'), [
+              [L('About', 'Nosotros'), '#founder'],
+              [L('Vision', 'Visión'), '#vision'],
+              [L('Laboratories', 'Laboratorios'), '#labs'],
+              [L('Careers', 'Carreras'), '#contact'],
+              [L('Contact', 'Contacto'), '#contact'],
+            ])}
+            {col(t('footer.divisions'), [
+              [L('Artificial Intelligence', 'Inteligencia Artificial'), '#divisions'],
+              [L('Telecommunications', 'Telecomunicaciones'), '#divisions'],
+              [L('Simulation', 'Simulación'), '#divisions'],
+              ['Cloud', '#divisions'],
+              [L('Data Intelligence', 'Inteligencia de Datos'), '#divisions'],
+            ])}
             <div>
               <h4 className="footer-col-title">{t('footer.connect')}</h4>
               <ul className="footer-links">
