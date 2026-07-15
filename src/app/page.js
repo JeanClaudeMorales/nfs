@@ -46,7 +46,7 @@ function Nav() {
   return (
     <nav className={`nav-glass ${scrolled ? 'is-scrolled' : ''}`}>
       <a href="#top" onClick={go('top')} className="nav-logo">
-        <span className="nav-logo-mark"><Icon name="saturn" /></span>
+        <img src="/logo.png" alt="Next Frontier Systems" className="nav-logo-mark" width="40" height="22" />
         Next Frontier
       </a>
       <div className="nav-links">

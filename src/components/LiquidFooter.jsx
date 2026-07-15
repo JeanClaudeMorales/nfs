@@ -1,7 +1,6 @@
 "use client";
 
 import { useI18n } from '@/lib/i18n';
-import Icon from './icons';
 
 // Footer = one full-bleed frosted-glass sheet spanning the viewport, rising
 // from the bottom. It's a single CSS `backdrop-filter` surface (same technique
@@ -53,7 +52,7 @@ export default function LiquidFooter() {
         <div className="footer-top">
           <div className="footer-brand">
             <div className="footer-logo">
-              <span className="footer-logo-mark"><Icon name="saturn" /></span>
+              <img src="/logo.png" alt="Next Frontier Systems" className="footer-logo-mark" width="44" height="24" />
               <span>Next Frontier Systems</span>
             </div>
             <p className="footer-tagline">{t('footer.tagline')}</p>
